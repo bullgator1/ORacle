@@ -1,0 +1,3034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Peds Dosing">
+<meta name="application-name" content="Peds Dosing">
+<meta name="theme-color" content="#fcf2c9">
+<title>Peds Dosing</title>
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
+<style>
+  :root {
+    --bg: #fafaf7;
+    --surface: #ffffff;
+    --surface-2: #f1efe8;
+    --text: #1a1a17;
+    --text-2: #5a5a55;
+    --text-3: #8a8a82;
+    --border: rgba(0,0,0,0.10);
+    --border-2: rgba(0,0,0,0.20);
+    --info-bg: #e6f1fb;
+    --info-fg: #0c447c;
+    --warn-bg: #faeeda;
+    --warn-fg: #854f0b;
+    --danger-bg: #fcebeb;
+    --danger-fg: #791f1f;
+    --success-bg: #eaf3de;
+    --success-fg: #27500a;
+    --accent: #185fa5;
+    --radius-sm: 6px;
+    --radius: 10px;
+    --radius-lg: 14px;
+    --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161613;
+      --surface: #1f1f1c;
+      --surface-2: #28282499;
+      --text: #f0eee6;
+      --text-2: #b0aea4;
+      --text-3: #7a7870;
+      --border: rgba(255,255,255,0.10);
+      --border-2: rgba(255,255,255,0.18);
+      --info-bg: #0c447c33;
+      --info-fg: #b5d4f4;
+      --warn-bg: #854f0b33;
+      --warn-fg: #fac775;
+      --danger-bg: #791f1f33;
+      --danger-fg: #f0a0a0;
+      --success-bg: #27500a33;
+      --success-fg: #c0dd97;
+      --accent: #5a9be0;
+    }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior: none;
+  }
+  body { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+  .app {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 16px 16px 60px 16px;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 0.5px solid var(--border);
+    gap: 8px;
+  }
+  .brand { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+  .brand-sub {
+    font-size: 11px;
+    color: var(--text-3);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .header-btns { display: flex; gap: 6px; flex-shrink: 0; }
+  .home-btn, .search-btn {
+    background: transparent;
+    border: 0.5px solid var(--border-2);
+    color: var(--text);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .home-btn:active, .search-btn:active { background: var(--surface-2); }
+  .search-btn { display: flex; align-items: center; gap: 4px; }
+  /* Patient banner — always visible at top showing current age/weight */
+  .pt-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 13px;
+  }
+  .pt-banner.estimated { border-color: rgba(133, 79, 11, 0.4); background: var(--warn-bg); }
+  .pt-banner .pt-info { flex: 1; min-width: 0; }
+  .pt-banner .pt-main { font-weight: 500; font-size: 14px; color: var(--text); }
+  .pt-banner .pt-sub { font-size: 11px; color: var(--text-2); margin-top: 2px; }
+  .pt-banner.estimated .pt-sub { color: var(--warn-fg); font-weight: 500; }
+  .pt-banner .pt-edit {
+    background: transparent;
+    border: 0.5px solid var(--border-2);
+    color: var(--text);
+    border-radius: var(--radius-sm);
+    padding: 5px 10px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .pt-banner .pt-edit:active { background: var(--surface-2); }
+  .pt-banner.empty {
+    background: var(--info-bg);
+    border-color: rgba(12, 68, 124, 0.3);
+    cursor: pointer;
+  }
+  .pt-banner.empty .pt-main { color: var(--info-fg); }
+  .crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 14px;
+    font-size: 12px;
+    min-height: 20px;
+  }
+  .crumb {
+    background: var(--surface-2);
+    color: var(--text-2);
+    padding: 4px 9px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    border: 0;
+    font-family: inherit;
+    font-size: 12px;
+  }
+  .crumb:active { background: var(--border); }
+  .crumb-sep { color: var(--text-3); font-size: 11px; }
+  h1.step-title {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 4px 0 6px 0;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+  }
+  .step-sub {
+    font-size: 14px;
+    color: var(--text-2);
+    margin: 0 0 18px 0;
+  }
+  .divider {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-3);
+    margin: 18px 0 10px 0;
+  }
+  .opt-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  @media (min-width: 540px) {
+    .opt-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  }
+  .opt {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.4;
+    width: 100%;
+    transition: background 0.1s, border-color 0.1s;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .opt:active { background: var(--surface-2); border-color: var(--border-2); }
+  .opt.urgent { border-color: rgba(120, 31, 31, 0.4); }
+  .opt-title { font-size: 15px; font-weight: 500; line-height: 1.3; }
+  .opt-sub { font-size: 12px; color: var(--text-3); line-height: 1.5; }
+  /* Drug row — the workhorse component */
+  .drug {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .drug.no-pt { opacity: 0.7; }
+  .drug.cap-hit { border-color: rgba(133, 79, 11, 0.4); }
+  .drug .d-left { flex: 1; min-width: 0; }
+  .drug .d-name { font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.3; }
+  .drug .d-sub { font-size: 11px; color: var(--text-3); margin-top: 2px; line-height: 1.4; }
+  .drug .d-right { text-align: right; flex-shrink: 0; min-width: 80px; }
+  .drug .d-mg { font-size: 17px; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; line-height: 1.1; letter-spacing: -0.01em; }
+  .drug .d-mg-unit { font-size: 11px; font-weight: 400; color: var(--text-2); margin-left: 2px; }
+  .drug .d-ml { font-size: 12px; color: var(--text-2); margin-top: 3px; font-variant-numeric: tabular-nums; }
+  .drug .d-cap { font-size: 10px; color: var(--warn-fg); margin-top: 2px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+  .drug .d-range { font-size: 13px; color: var(--text-2); font-variant-numeric: tabular-nums; line-height: 1.3; }
+  .drug-section-head {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-2);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 14px 0 6px 2px;
+  }
+  .drug-section-head:first-child { margin-top: 0; }
+  /* Source / citation expand */
+  .src-toggle {
+    background: transparent;
+    border: 0;
+    color: var(--text-3);
+    font-size: 11px;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 4px 0 0 0;
+    margin-top: 2px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .src-toggle::before { content: "›"; display: inline-block; transition: transform 0.15s; font-size: 13px; }
+  .src-toggle.open::before { transform: rotate(90deg); }
+  .src-body {
+    display: none;
+    font-size: 11px;
+    color: var(--text-3);
+    line-height: 1.5;
+    margin-top: 4px;
+    padding-top: 6px;
+    border-top: 0.5px dashed var(--border);
+  }
+  .src-body.open { display: block; }
+  /* Generic reference card / note */
+  .note {
+    font-size: 13px;
+    color: var(--text-2);
+    background: var(--surface-2);
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    margin: 8px 0 12px 0;
+    line-height: 1.5;
+  }
+  .note.warn { background: var(--warn-bg); color: var(--warn-fg); }
+  .note.danger { background: var(--danger-bg); color: var(--danger-fg); }
+  .note.info { background: var(--info-bg); color: var(--info-fg); }
+  .note strong { font-weight: 600; }
+  /* Form inputs */
+  .input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .input-row label {
+    flex: 0 0 110px;
+    font-size: 13px;
+    color: var(--text-2);
+  }
+  .input-row input {
+    flex: 1;
+    background: var(--surface);
+    border: 0.5px solid var(--border-2);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-size: 16px;
+    font-family: inherit;
+    color: var(--text);
+    outline: none;
+    font-variant-numeric: tabular-nums;
+    -webkit-appearance: none;
+  }
+  .input-row input:focus { border-color: var(--accent); }
+  .input-row .unit { font-size: 12px; color: var(--text-3); flex: 0 0 auto; }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border: 0;
+    border-radius: var(--radius);
+    padding: 12px 18px;
+    font-size: 15px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 8px;
+  }
+  .btn-secondary {
+    background: transparent;
+    color: var(--text-2);
+    border: 0.5px solid var(--border-2);
+    border-radius: var(--radius);
+    padding: 10px 16px;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 6px;
+  }
+  /* Tables (vitals, labs, transfusion) */
+  table.ref {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 4px 0 12px 0;
+    background: var(--surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  table.ref th, table.ref td {
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 0.5px solid var(--border);
+    font-variant-numeric: tabular-nums;
+  }
+  table.ref th {
+    font-weight: 600;
+    font-size: 11px;
+    color: var(--text-2);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: var(--surface-2);
+  }
+  table.ref tr:last-child td { border-bottom: 0; }
+  table.ref tr.highlight { background: var(--info-bg); }
+  table.ref tr.highlight td { color: var(--info-fg); font-weight: 500; }
+  .footer-note {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-3);
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 0.5px solid var(--border);
+    line-height: 1.6;
+  }
+  .footer-note strong { color: var(--text-2); }
+  .icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    vertical-align: -3px;
+    flex-shrink: 0;
+  }
+  /* Search overlay (copied pattern from pre-op app) */
+  .search-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 1000;
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 60px 16px 16px 16px;
+  }
+  .search-overlay.active { display: flex; }
+  .search-panel {
+    background: var(--bg);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 600px;
+    max-height: calc(100vh - 80px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  }
+  .search-header {
+    display: flex;
+    gap: 8px;
+    padding: 12px 14px;
+    border-bottom: 0.5px solid var(--border);
+    align-items: center;
+  }
+  .search-input {
+    flex: 1;
+    background: var(--surface);
+    border: 0.5px solid var(--border-2);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--text);
+    outline: none;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .search-close {
+    background: transparent;
+    border: 0.5px solid var(--border-2);
+    color: var(--text);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .search-results { overflow-y: auto; padding: 8px 0; flex: 1; }
+  .search-result { padding: 10px 14px; border-bottom: 0.5px solid var(--border); cursor: pointer; }
+  .search-result:active, .search-result:hover { background: var(--surface-2); }
+  .search-result-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+  .search-result-path { font-size: 11px; color: var(--text-3); margin-bottom: 4px; }
+  .search-result-snippet { font-size: 13px; color: var(--text-2); line-height: 1.4; }
+  .search-result-via { font-size: 11px; color: var(--text-3); margin-top: 4px; font-style: italic; }
+  .search-result-via em { color: var(--accent); font-style: normal; font-weight: 500; }
+  .search-result mark {
+    background: rgba(24, 95, 165, 0.25);
+    color: inherit;
+    padding: 0 2px;
+    border-radius: 2px;
+    font-weight: 600;
+  }
+  .search-empty { padding: 30px 14px; text-align: center; color: var(--text-3); font-size: 14px; }
+  .search-hint {
+    padding: 10px 14px;
+    font-size: 11px;
+    color: var(--text-3);
+    border-top: 0.5px solid var(--border);
+    text-align: center;
+  }
+  /* Favorites star */
+  .fav-star {
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    padding: 4px;
+    color: var(--text-3);
+    font-size: 16px;
+    line-height: 1;
+  }
+  .fav-star.on { color: #d4a017; }
+  /* Bundle pages */
+  .bundle-head {
+    background: var(--info-bg);
+    color: var(--info-fg);
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+</style>
+<script>window.__ORACLE_APP='peds';</script>
+<script src="../xref.js"></script>
+</head>
+<body>
+<!-- Splash screen -->
+<div id="peds-splash" style="position:fixed;inset:0;background:#185fa5;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:-apple-system,system-ui,sans-serif;transition:opacity 0.3s ease-out;">
+  <div style="width:108px;height:108px;background:#185fa5;border-radius:24px;display:flex;align-items:center;justify-content:center;margin-bottom:18px;overflow:hidden;">
+    <svg width="108" height="108" viewBox="0 0 180 180">
+      <circle cx="62" cy="62" r="15" fill="#d9b896"/>
+      <circle cx="62" cy="62" r="7.5" fill="#b8956f"/>
+      <circle cx="118" cy="62" r="15" fill="#d9b896"/>
+      <circle cx="118" cy="62" r="7.5" fill="#b8956f"/>
+      <circle cx="90" cy="95" r="46" fill="#e8c9a8"/>
+      <ellipse cx="90" cy="112" rx="22" ry="17" fill="#f5e0c4"/>
+      <ellipse cx="90" cy="104" rx="5.5" ry="4" fill="#3a2820"/>
+      <path d="M 90 108 Q 90 119 82 121" stroke="#3a2820" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <path d="M 90 108 Q 90 119 98 121" stroke="#3a2820" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <circle cx="74" cy="90" r="4.2" fill="#3a2820"/>
+      <circle cx="106" cy="90" r="4.2" fill="#3a2820"/>
+      <circle cx="75" cy="89" r="1" fill="#fff"/>
+      <circle cx="107" cy="89" r="1" fill="#fff"/>
+      <path d="M 77 96 Q 77 49 90 45 Q 103 49 103 96 Q 103 86 99 84 Q 92 81 90 84 Q 88 81 81 84 Q 77 86 77 96 Z" fill="#5fa888"/>
+      <circle cx="90" cy="55" r="12" fill="#d63030"/>
+      <rect x="83" y="53" width="14" height="4" fill="#ffffff"/>
+      <rect x="88" y="48" width="4" height="14" fill="#ffffff"/>
+    </svg>
+  </div>
+  <div style="font-size:22px;font-weight:600;letter-spacing:0.5px;">Peds Dosing</div>
+  <div style="font-size:13px;opacity:0.8;margin-top:6px;">Cognitive aid</div>
+</div>
+<script>
+  window.addEventListener('DOMContentLoaded', function() {
+    var s = document.getElementById('peds-splash');
+    if (s) {
+      setTimeout(function() {
+        s.style.opacity = '0';
+        setTimeout(function() { s.remove(); }, 350);
+      }, 100);
+    }
+  });
+</script>
+<div class="app">
+  <header>
+    <div>
+      <div class="brand">Peds Dosing</div>
+      <div class="brand-sub">Cognitive aid</div>
+    </div>
+    <div class="header-btns">
+      <button class="search-btn" id="search-btn" title="Search (/ or Ctrl/⌘+K)">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        Search
+      </button>
+      <button class="home-btn" id="home-btn">Home</button>
+    </div>
+  </header>
+  <div id="pt-banner-host"></div>
+  <div class="crumbs" id="crumbs"></div>
+  <div id="stage"></div>
+  <div class="footer-note">
+    <strong>Not a substitute for clinical judgment.</strong><br>
+    Always verify doses against the actual vial concentration and current institutional protocols. Dose caps reflect typical adult maxima; individualize for the patient.<br>
+    Sources: Coté's Practice of Anesthesia for Infants and Children · FDA labeling · PALS 2020 · APLS/Luscombe weight estimate · Holliday-Segar · ASRA 2020 (LAST) · MHAUS · institutional convention.<br>
+    Originally designed by Dr. JP Wang. v3-web 2026.
+  </div>
+</div>
+
+<!-- Search overlay -->
+<div class="search-overlay" id="search-overlay">
+  <div class="search-panel">
+    <div class="search-header">
+      <input type="search" class="search-input" id="search-input" placeholder="Search drugs, scenarios, equipment…" autocomplete="off" autocorrect="off" spellcheck="false">
+      <button class="search-close" id="search-close">Close</button>
+    </div>
+    <div class="search-results" id="search-results"></div>
+    <div class="search-hint">Try "heart attack", "anaphylaxis", "laryngospasm", "potassium", "succ"…</div>
+  </div>
+</div>
+<script>
+(function(){
+  'use strict';
+
+  // ============ DEBUG / ERROR REPORTING ============
+  function beat(s) { try { document.title = '[' + s + '] Peds'; } catch(e) {} }
+  beat('init');
+  let _errCount = 0;
+  window.addEventListener('error', function(ev) {
+    _errCount++;
+    const msg = (ev.message || '?') + ' @ ' + (ev.filename || '?').split('/').pop() + ':' + (ev.lineno || '?');
+    try { document.title = 'ERR#' + _errCount + ': ' + msg; } catch(e) {}
+    try {
+      if (!document.body) return;
+      let bar = document.getElementById('__err_bar');
+      if (!bar) {
+        bar = document.createElement('div');
+        bar.id = '__err_bar';
+        bar.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#791f1f;color:#fff;padding:8px 12px;font:12px/1.4 -apple-system,system-ui,sans-serif;max-height:40vh;overflow:auto;white-space:pre-wrap;border-top:2px solid #fff;';
+        bar.onclick = function() { bar.remove(); };
+        document.body.appendChild(bar);
+      }
+      const full = msg + (ev.error && ev.error.stack ? '\n' + ev.error.stack : '');
+      bar.textContent = (bar.textContent ? bar.textContent + '\n---\n' : '') + full;
+    } catch(e) {}
+  });
+
+  // ============ PATIENT STATE ============
+  // Persisted to localStorage. Three things drive everything: ageMonths, ageYears, weightKg (typed).
+  // ageMonths takes precedence for <2yr; ageYears for >=2yr. Weight typed always wins over estimate.
+  const LS_KEY = 'pedsDosing.patient.v1';
+  const FAV_KEY = 'pedsDosing.favorites.v1';
+  let patient = { ageMonths: null, ageYears: null, weightKg: null, weightLb: null, savedAt: null };
+  let favorites = [];
+
+  function loadPatient() {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (raw) patient = Object.assign({ageMonths:null,ageYears:null,weightKg:null,weightLb:null,savedAt:null}, JSON.parse(raw));
+      const fraw = localStorage.getItem(FAV_KEY);
+      if (fraw) favorites = JSON.parse(fraw);
+    } catch(e) {}
+  }
+  function savePatient() {
+    patient.savedAt = Date.now();
+    try { localStorage.setItem(LS_KEY, JSON.stringify(patient)); } catch(e) {}
+  }
+  function clearPatient() {
+    patient = { ageMonths: null, ageYears: null, weightKg: null, weightLb: null, savedAt: null };
+    try { localStorage.removeItem(LS_KEY); } catch(e) {}
+  }
+  function saveFavorites() {
+    try { localStorage.setItem(FAV_KEY, JSON.stringify(favorites)); } catch(e) {}
+  }
+
+  // Age in years (float) — months take precedence if entered
+  function ageYears() {
+    if (patient.ageMonths != null && patient.ageMonths !== '') return Number(patient.ageMonths) / 12;
+    if (patient.ageYears != null && patient.ageYears !== '') return Number(patient.ageYears);
+    return null;
+  }
+  // Age in months (float)
+  function ageMonths() {
+    if (patient.ageMonths != null && patient.ageMonths !== '') return Number(patient.ageMonths);
+    if (patient.ageYears != null && patient.ageYears !== '') return Number(patient.ageYears) * 12;
+    return null;
+  }
+
+  // APLS/Luscombe weight estimate — fallback when no measured weight
+  // <12mo: 0.5*months + 4 | 12-24mo: 2*(months/12) + 8 | 1-5yr: 2*yr + 8 | >5yr: 3*yr + 7
+  function estimatedWeight() {
+    const m = ageMonths();
+    if (m == null) return null;
+    if (m < 12) return 0.5 * m + 4;
+    if (m < 24) return 2 * (m / 12) + 8;
+    const y = m / 12;
+    if (y <= 5) return 2 * y + 8;
+    return 3 * y + 7;
+  }
+
+  // Final calc weight: typed kg > typed lb (÷2.2) > age estimate
+  function calcWeight() {
+    if (patient.weightKg != null && patient.weightKg !== '') return Number(patient.weightKg);
+    if (patient.weightLb != null && patient.weightLb !== '') return Number(patient.weightLb) / 2.2;
+    return estimatedWeight();
+  }
+  function isWeightEstimated() {
+    return (patient.weightKg == null || patient.weightKg === '') &&
+           (patient.weightLb == null || patient.weightLb === '') &&
+           estimatedWeight() != null;
+  }
+  function hasAnyPatient() {
+    return calcWeight() != null;
+  }
+
+  // ============ DOSE CALCULATION HELPERS ============
+  // calc(perKg, capMg) → { mg, capped, calcMg }
+  // perKg can be a number (mg/kg) or null
+  function calc(perKg, capMg) {
+    const w = calcWeight();
+    if (w == null || perKg == null) return { mg: null, capped: false, calcMg: null };
+    const raw = w * perKg;
+    if (capMg != null && raw > capMg) return { mg: capMg, capped: true, calcMg: raw };
+    return { mg: raw, capped: false, calcMg: raw };
+  }
+  // Round mg sensibly: <1 → 2 sigfigs, 1-10 → 1 decimal, >10 → integer
+  function roundMg(v) {
+    if (v == null) return null;
+    if (v < 0.1) return Number(v.toPrecision(2));
+    if (v < 1) return Number(v.toFixed(2));
+    if (v < 10) return Number(v.toFixed(1));
+    return Math.round(v);
+  }
+  function fmtMg(v, unit) {
+    if (v == null) return '—';
+    unit = unit || 'mg';
+    return roundMg(v) + ' ' + unit;
+  }
+  // Round mL — usually want 2 decimals for small volumes
+  function roundMl(v) {
+    if (v == null) return null;
+    if (v < 0.1) return Number(v.toPrecision(2));
+    if (v < 10) return Number(v.toFixed(2));
+    return Number(v.toFixed(1));
+  }
+  function fmtMl(v) {
+    if (v == null) return '—';
+    return roundMl(v) + ' mL';
+  }
+  // mL given mg and concentration (mg/mL)
+  function mgToMl(mg, conc) {
+    if (mg == null || conc == null || conc === 0) return null;
+    return mg / conc;
+  }
+
+  // ============ DRUG CONCENTRATIONS (single source of truth) ============
+  // Edit here when pharmacy stock changes — flows through all mL calcs.
+  const CONC = {
+    'atropine': 0.4,                  // 0.4 mg/mL standard vial
+    'atropine_pals': 1,               // 1 mg/mL PALS cart alt
+    'glycopyrrolate': 0.2,
+    'ephedrine': 5,                   // after dilution from 50 mg/mL
+    'phenylephrine': 0.1,             // 100 mcg/mL after dilution
+    'labetalol': 5,
+    'esmolol': 10,
+    'epi_1_10k': 0.1,                 // arrest IV/IO
+    'epi_1_1k': 1,                    // ETT, IM, anaphylaxis
+    'CaCl': 100,                      // 10% — 100 mg/mL
+    'CaGluc': 100,                    // 10% — 100 mg/mL
+    'hydrocortisone': 50,
+    'furosemide': 10,
+    'atracurium': 10,
+    'vecuronium': 1,                  // reconstituted
+    'cisatracurium': 2,
+    'rocuronium': 10,
+    'succinylcholine': 20,
+    'neostigmine': 1,
+    'naloxone': 0.4,
+    'flumazenil': 0.1,
+    'physostigmine': 1,
+    'sugammadex': 100,
+    'midazolam_iv': 5,                // 5 mg/mL standard
+    'midazolam_po_syrup': 2,
+    'propofol': 10,
+    'ketamine_iv': 10,                // 10 mg/mL IV form
+    'ketamine_im': 50,                // 50 mg/mL or 100 mg/mL — using 50 for safety
+    'fentanyl': 0.05,                 // 50 mcg/mL → 0.05 mg/mL
+    'morphine': 1,
+    'hydromorphone': 0.5,
+    'remifentanil': 0.05,             // typically diluted to 50 mcg/mL
+    'lidocaine_iv': 20,               // 2% = 20 mg/mL
+    'toradol': 30,                    // 30 mg/mL standard
+    'ondansetron': 2,
+    'metoclopramide': 5,
+    'dexamethasone': 10,
+    'droperidol': 2.5,
+    'diphenhydramine': 50,
+    'acetaminophen_iv': 10,
+    'dexmedetomidine': 4,             // typically diluted to 4 mcg/mL — input is mcg/mL though
+    'NaHCO3': 84,                     // 8.4% = 1 mEq/mL — but using mg/mL here is awkward; we'll use mEq separately
+    'magnesium_sulfate': 100,         // 10% = 100 mg/mL (also 500 mg/mL avail)
+  };
+  // mL from mg using concentration key
+  function mlOf(mg, concKey) {
+    return mgToMl(mg, CONC[concKey]);
+  }
+  // Display string like "0.7 mL of 5 mg/mL"
+  function mlDisp(mg, concKey, unit) {
+    const ml = mlOf(mg, concKey);
+    const c = CONC[concKey];
+    if (ml == null) return '';
+    const unitStr = (unit === 'mcg') ? (c*1000) + ' mcg/mL' : c + ' mg/mL';
+    return fmtMl(ml) + ' of ' + unitStr;
+  }
+
+  // ============ NAVIGATION ============
+  const stage = document.getElementById('stage');
+  const crumbsEl = document.getElementById('crumbs');
+  const ptBannerHost = document.getElementById('pt-banner-host');
+  let path = []; // [{label, key, render}]
+  let ctx = {}; // per-page transient state
+
+  const STEP_REGISTRY = {};
+  function registerStep(key, label, render, parents) {
+    STEP_REGISTRY[key] = {key, label, render, parents: parents || []};
+  }
+
+  function go(label, key, renderFn, freshCtx) {
+    if (freshCtx) ctx = {};
+    path.push({label, key, render: renderFn});
+    draw();
+  }
+  function goHome() {
+    path = [];
+    ctx = {};
+    draw();
+  }
+  function back() {
+    if (path.length <= 1) { goHome(); return; }
+    path.pop();
+    draw();
+  }
+  function popTo(idx) {
+    path = path.slice(0, idx + 1);
+    draw();
+  }
+
+  function draw() {
+    renderPatientBanner();
+    renderCrumbs();
+    stage.innerHTML = '';
+    if (path.length === 0) {
+      renderHome();
+    } else {
+      const top = path[path.length - 1];
+      try { top.render(); } catch(e) { console.error(e); stage.innerHTML = '<div class="note danger">Render error: ' + (e.message||e) + '</div>'; }
+    }
+    window.scrollTo(0, 0);
+    beat('ready');
+  }
+
+  // ============ PATIENT BANNER ============
+  function renderPatientBanner() {
+    ptBannerHost.innerHTML = '';
+    const w = calcWeight();
+    const div = document.createElement('div');
+    if (w == null) {
+      div.className = 'pt-banner empty';
+      div.innerHTML = '<div class="pt-info"><div class="pt-main">Tap to enter age and weight →</div><div class="pt-sub">No patient set</div></div><button class="pt-edit">Set</button>';
+      div.onclick = openPatientInput;
+      ptBannerHost.appendChild(div);
+      return;
+    }
+    const estimated = isWeightEstimated();
+    div.className = 'pt-banner' + (estimated ? ' estimated' : '');
+    const m = ageMonths();
+    let ageStr = '';
+    if (m != null) {
+      if (m < 24) ageStr = Math.round(m * 10) / 10 + ' mo';
+      else ageStr = Math.round(m / 12 * 10) / 10 + ' yr';
+    }
+    const wStr = roundMg(w) + ' kg';
+    const main = ageStr ? (ageStr + ' · ' + wStr) : wStr;
+    let sub = '';
+    if (estimated) sub = '⚠ Weight estimated from age';
+    else if (m == null) sub = 'No age entered — some equipment & ETT calcs unavailable';
+    else sub = 'Drug doses & equipment based on this patient';
+    div.innerHTML = '<div class="pt-info"><div class="pt-main">' + main + '</div><div class="pt-sub">' + sub + '</div></div>';
+    const btn = document.createElement('button');
+    btn.className = 'pt-edit';
+    btn.textContent = 'Change';
+    btn.onclick = function(e) { e.stopPropagation(); openPatientInput(); };
+    div.appendChild(btn);
+    ptBannerHost.appendChild(div);
+  }
+
+  // ============ CRUMBS ============
+  function renderCrumbs() {
+    crumbsEl.innerHTML = '';
+    if (path.length === 0) return;
+    const home = document.createElement('button');
+    home.className = 'crumb'; home.textContent = 'Home'; home.onclick = goHome;
+    crumbsEl.appendChild(home);
+    path.forEach((p, i) => {
+      const sep = document.createElement('span'); sep.className = 'crumb-sep'; sep.textContent = '›';
+      crumbsEl.appendChild(sep);
+      const b = document.createElement('button');
+      b.className = 'crumb';
+      b.textContent = p.label;
+      b.onclick = () => popTo(i);
+      crumbsEl.appendChild(b);
+    });
+  }
+
+  // ============ RENDER PRIMITIVES ============
+  function el(tag, cls, html) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (html != null) e.innerHTML = html;
+    return e;
+  }
+  function title(text, sub) {
+    if (_indexingMode) { _indexingMode.titles.push(text); if (sub) _indexingMode.content.push(sub); return; }
+    stage.appendChild(el('h1', 'step-title', text));
+    if (sub) stage.appendChild(el('p', 'step-sub', sub));
+  }
+  function divider(text) {
+    if (_indexingMode) { _indexingMode.content.push(text); return; }
+    stage.appendChild(el('div', 'divider', text));
+  }
+  function note(text, kind) {
+    if (_indexingMode) { _indexingMode.content.push(text); return; }
+    const n = el('div', 'note' + (kind ? ' ' + kind : ''), text);
+    stage.appendChild(n);
+  }
+  function optGrid(opts) {
+    if (_indexingMode) {
+      opts.forEach(o => { _indexingMode.content.push(o.title + ' ' + (o.sub || '')); });
+      return;
+    }
+    const grid = el('div', 'opt-grid');
+    opts.forEach(o => {
+      const b = el('button', 'opt' + (o.urgent ? ' urgent' : ''));
+      b.innerHTML = '<span class="opt-title">' + o.title + '</span>' + (o.sub ? '<span class="opt-sub">' + o.sub + '</span>' : '');
+      b.onclick = o.onClick;
+      grid.appendChild(b);
+    });
+    stage.appendChild(grid);
+  }
+  function sectionHead(text) {
+    if (_indexingMode) { _indexingMode.content.push(text); return; }
+    stage.appendChild(el('div', 'drug-section-head', text));
+  }
+  // drug({name, dose: '0.05 mg/kg', perKg: 0.05, cap: 2, unit:'mg', conc: 'midazolam_iv', sub:'IV induction', src:'…'})
+  // Returns the appended row (so caller can override)
+  function drug(d) {
+    if (_indexingMode) {
+      _indexingMode.content.push(d.name + ' ' + (d.dose || '') + ' ' + (d.sub || '') + ' ' + (d.indications || ''));
+      return;
+    }
+    const w = calcWeight();
+    const row = el('div', 'drug' + (w == null ? ' no-pt' : ''));
+    const left = el('div', 'd-left');
+    left.appendChild(el('div', 'd-name', d.name));
+    let subParts = [];
+    if (d.dose) subParts.push(d.dose);
+    if (d.sub) subParts.push(d.sub);
+    if (subParts.length) left.appendChild(el('div', 'd-sub', subParts.join(' · ')));
+
+    // Source toggle
+    if (d.src) {
+      const tg = el('button', 'src-toggle', 'Source');
+      const body = el('div', 'src-body', d.src);
+      tg.onclick = function() {
+        tg.classList.toggle('open');
+        body.classList.toggle('open');
+      };
+      left.appendChild(tg);
+      left.appendChild(body);
+    }
+
+    const right = el('div', 'd-right');
+    // Compute display: either single value or range
+    if (d.perKg != null) {
+      const r = calc(d.perKg, d.cap);
+      const unit = d.unit || 'mg';
+      if (r.mg == null) {
+        right.innerHTML = '<div class="d-mg">—</div>';
+      } else {
+        let mgHtml = '<div class="d-mg">' + roundMg(r.mg) + '<span class="d-mg-unit"> ' + unit + '</span></div>';
+        if (r.capped) {
+          row.classList.add('cap-hit');
+          mgHtml += '<div class="d-cap">capped</div>';
+        }
+        // mL if conc provided. Note: if unit is mcg, we want mg = r.mg / 1000 for mL calc.
+        if (d.conc) {
+          const mgForMl = (unit === 'mcg') ? r.mg / 1000 : r.mg;
+          const ml = mlOf(mgForMl, d.conc);
+          if (ml != null) {
+            const c = CONC[d.conc];
+            const concDisp = (unit === 'mcg') ? (c * 1000) + ' mcg/mL' : c + ' mg/mL';
+            mgHtml += '<div class="d-ml">' + roundMl(ml) + ' mL <span style="opacity:0.7">@ ' + concDisp + '</span></div>';
+          }
+        }
+        right.innerHTML = mgHtml;
+      }
+    } else if (d.perKgLow != null && d.perKgHigh != null) {
+      const rLow = calc(d.perKgLow, d.cap);
+      const rHigh = calc(d.perKgHigh, d.cap);
+      const unit = d.unit || 'mg';
+      if (rLow.mg == null) {
+        right.innerHTML = '<div class="d-mg">—</div>';
+      } else {
+        let mgHtml = '<div class="d-mg">' + roundMg(rLow.mg) + '–' + roundMg(rHigh.mg) + '<span class="d-mg-unit"> ' + unit + '</span></div>';
+        if (rHigh.capped) {
+          row.classList.add('cap-hit');
+          mgHtml += '<div class="d-cap">cap ' + d.cap + ' ' + unit + '</div>';
+        }
+        if (d.conc) {
+          const lowMg = (unit === 'mcg') ? rLow.mg / 1000 : rLow.mg;
+          const highMg = (unit === 'mcg') ? rHigh.mg / 1000 : rHigh.mg;
+          const mlLow = mlOf(lowMg, d.conc), mlHigh = mlOf(highMg, d.conc);
+          if (mlLow != null) {
+            const c = CONC[d.conc];
+            const concDisp = (unit === 'mcg') ? (c * 1000) + ' mcg/mL' : c + ' mg/mL';
+            mgHtml += '<div class="d-ml">' + roundMl(mlLow) + '–' + roundMl(mlHigh) + ' mL <span style="opacity:0.7">@ ' + concDisp + '</span></div>';
+          }
+        }
+        right.innerHTML = mgHtml;
+      }
+    } else if (d.custom) {
+      right.innerHTML = '<div class="d-range">' + d.custom + '</div>';
+    }
+    row.appendChild(left);
+    row.appendChild(right);
+    stage.appendChild(row);
+    return row;
+  }
+
+
+  // ============ SYNONYMS ============
+  // Same pattern as pre-op app: each row is an equivalence class.
+  // Heavy emphasis on indication→drug mapping ("anaphylaxis", "laryngospasm", "MH", etc.)
+  // because in peds intraop you think indication first, drug second.
+  const SYNONYM_CLASSES = [
+    // Indications / scenarios → drugs
+    ['anaphylaxis', 'allergic reaction', 'allergy', 'epi', 'epinephrine', 'adrenaline', 'hives', 'wheezing'],
+    ['mh', 'malignant hyperthermia', 'dantrolene', 'ryanodex', 'hyperthermia'],
+    ['last', 'local anesthetic systemic toxicity', 'lipid', 'intralipid', 'lipid rescue', 'lipid emulsion'],
+    ['laryngospasm', 'larynx spasm', 'succ', 'sux', 'succinylcholine', 'suxamethonium', 'sch', 'anectine'],
+    ['hyperk', 'hyperkalemia', 'high potassium', 'high k', 'potassium', 'k+', 'kayexalate', 'calcium chloride'],
+    ['hypotension', 'low bp', 'low blood pressure', 'pressor', 'phenylephrine', 'ephedrine'],
+    ['hypertension', 'htn', 'high bp', 'high blood pressure', 'labetalol', 'esmolol', 'nicardipine'],
+    ['bradycardia', 'slow heart rate', 'low hr', 'atropine'],
+    ['tachycardia', 'fast heart rate', 'high hr', 'svt', 'adenosine', 'esmolol'],
+    ['mi', 'myocardial infarction', 'heart attack', 'stemi', 'nstemi'],
+    ['arrest', 'cardiac arrest', 'code', 'code blue', 'cpr', 'pals', 'pea', 'asystole', 'vf', 'pulseless vt', 'ventricular fibrillation'],
+    ['seizure', 'seizing', 'status epilepticus', 'status', 'convulsion', 'midazolam', 'lorazepam', 'phenobarbital', 'levetiracetam', 'keppra'],
+    ['nausea', 'vomiting', 'ponv', 'emesis', 'antiemetic', 'ondansetron', 'zofran'],
+    ['pain', 'analgesia', 'analgesic', 'opioid'],
+    ['rsi', 'rapid sequence', 'rapid sequence induction', 'rapid sequence intubation', 'full stomach', 'aspiration'],
+    ['intubation', 'intubate', 'ett', 'endotracheal tube', 'tube size'],
+    ['mabl', 'maximum allowable blood loss', 'blood loss', 'transfusion threshold', 'allowable loss'],
+    ['fluid', 'fluids', 'maintenance', 'bolus', 'crystalloid', 'lactated ringers', 'normal saline', 'lr', 'ns', 'plasmalyte'],
+    ['blood', 'prbc', 'transfusion', 'packed red cells', 'red blood cells', 'hemorrhage', 'haemorrhage', 'bleeding', 'massive transfusion', 'mtp', 'mass transfusion', 'exsanguination', 'txa', 'tranexamic acid'],
+    ['glucose', 'sugar', 'hypoglycemia', 'd10', 'd25', 'd50', 'dextrose'],
+    ['hypoglycemia', 'low sugar', 'low glucose'],
+    ['reversal', 'reverse', 'sugammadex', 'neostigmine', 'glycopyrrolate', 'narcan', 'naloxone', 'flumazenil'],
+    ['nmb', 'paralytic', 'paralyzer', 'paralytics', 'muscle relaxant', 'muscle relaxants', 'roc', 'rocuronium', 'vec', 'vecuronium', 'cis', 'cisatracurium'],
+    ['premedication', 'premed', 'pre-medication', 'midaz', 'versed'],
+    ['mask induction', 'inhalational induction', 'sevoflurane', 'sevo', 'gas induction'],
+    ['caudal', 'caudal block', 'caudal anesthesia', 'sacral block', 'armitage'],
+    ['regional', 'block', 'nerve block', 'local anesthetic', 'la'],
+    // Drug brand ↔ generic
+    ['acetaminophen', 'paracetamol', 'tylenol', 'apap', 'ofirmev'],
+    ['ondansetron', 'zofran'],
+    ['midazolam', 'versed'],
+    ['ketamine', 'ketalar'],
+    ['succinylcholine', 'sux', 'succ', 'sch', 'anectine', 'suxamethonium'],
+    ['rocuronium', 'roc', 'zemuron'],
+    ['vecuronium', 'vec', 'norcuron'],
+    ['cisatracurium', 'cis', 'nimbex'],
+    ['atracurium', 'tracrium'],
+    ['neostigmine', 'prostigmin', 'bloxiverz'],
+    ['sugammadex', 'bridion'],
+    ['naloxone', 'narcan'],
+    ['flumazenil', 'romazicon'],
+    ['fentanyl', 'sublimaze'],
+    ['hydromorphone', 'dilaudid'],
+    ['morphine', 'duramorph', 'astramorph'],
+    ['remifentanil', 'ultiva'],
+    ['propofol', 'diprivan'],
+    ['dexmedetomidine', 'precedex', 'dex'],
+    ['dexamethasone', 'decadron'],
+    ['toradol', 'ketorolac'],
+    ['diphenhydramine', 'benadryl'],
+    ['metoclopramide', 'reglan'],
+    ['droperidol', 'inapsine'],
+    ['glycopyrrolate', 'robinul', 'glyco'],
+    ['cefazolin', 'kefzol', 'ancef'],
+    ['ceftriaxone', 'rocephin'],
+    ['cefoxitin', 'mefoxin'],
+    ['clindamycin', 'cleocin'],
+    ['vancomycin', 'vanco', 'vancocin'],
+    ['gentamicin', 'garamycin'],
+    ['ampicillin', 'principen'],
+    ['lidocaine', 'xylocaine'],
+    ['bupivacaine', 'marcaine', 'sensorcaine'],
+    ['ropivacaine', 'naropin'],
+    ['epinephrine', 'epi', 'adrenaline'],
+    ['norepinephrine', 'norepi', 'levophed'],
+    ['phenylephrine', 'neo', 'neosynephrine'],
+    ['ephedrine', 'ephed'],
+    ['labetalol', 'trandate', 'normodyne'],
+    ['esmolol', 'brevibloc'],
+    ['nitroglycerin', 'ntg', 'nitro'],
+    ['nitroprusside', 'snp', 'nipride'],
+    ['dopamine', 'intropin'],
+    ['dobutamine', 'dobutrex'],
+    ['milrinone', 'primacor'],
+    ['vasopressin', 'pitressin', 'adh'],
+    ['isoproterenol', 'isuprel'],
+    ['nicardipine', 'cardene'],
+    ['furosemide', 'lasix'],
+    ['mannitol', 'osmitrol'],
+    ['hydrocortisone', 'solucortef'],
+    ['methylprednisolone', 'solumedrol'],
+    ['dantrolene', 'dantrium', 'revonto'],
+    ['ryanodex', 'dantrolene'],
+    ['intralipid', 'lipid emulsion', 'smoflipid'],
+    ['amiodarone', 'cordarone', 'pacerone'],
+    ['adenosine', 'adenocard'],
+    ['mag', 'magnesium', 'magnesium sulfate', 'mgso4'],
+    ['calcium chloride', 'cacl', 'cacl2'],
+    ['calcium gluconate', 'cagluc', 'ca gluconate'],
+    ['sodium bicarbonate', 'bicarb', 'nahco3'],
+    ['phenobarbital', 'phenobarb', 'luminal'],
+    ['levetiracetam', 'keppra'],
+    ['lorazepam', 'ativan'],
+    ['diazepam', 'valium', 'diastat'],
+    ['fosphenytoin', 'cerebyx'],
+    ['phenytoin', 'dilantin'],
+    // Electrolytes / labs
+    ['k+', 'potassium'],
+    ['na+', 'sodium', 'hyponatremia', 'hypernatremia'],
+    ['ca', 'calcium', 'ca++', 'ionized calcium'],
+    ['mg++', 'magnesium', 'mag'],
+    ['hgb', 'hb', 'hemoglobin', 'haemoglobin'],
+    ['hct', 'hematocrit', 'haematocrit'],
+    ['plt', 'platelet', 'platelets'],
+    // Equipment / procedural
+    ['lma', 'laryngeal mask airway', 'supraglottic airway', 'sga'],
+    ['ett', 'endotracheal tube', 'tube'],
+    ['opa', 'oral airway', 'guedel'],
+    ['npa', 'nasal airway', 'nasopharyngeal airway'],
+    ['blade', 'laryngoscope', 'miller', 'mac', 'macintosh', 'wis-hipple'],
+    ['mask', 'face mask', 'anesthesia mask'],
+    ['bp cuff', 'blood pressure cuff', 'cuff'],
+    ['cpap', 'continuous positive airway pressure'],
+    // Vital signs / labs
+    ['vital signs', 'vitals', 'normal vitals', 'normal hr', 'normal bp'],
+    ['labs', 'normal labs', 'reference values', 'normal values'],
+    // Body weight / EBV
+    ['weight', 'kg', 'body weight', 'mass'],
+    ['ebv', 'estimated blood volume', 'blood volume'],
+    // Cardiac / hemodynamic
+    ['svt', 'supraventricular tachycardia'],
+    ['vt', 'ventricular tachycardia'],
+    ['vf', 'ventricular fibrillation', 'pulseless vt'],
+    ['torsades', 'torsades de pointes', 'long qt', 'magnesium'],
+    // Sedation / premed
+    ['intranasal', 'in', 'nasal'],
+    ['im', 'intramuscular'],
+    ['iv', 'intravenous'],
+    ['po', 'oral', 'by mouth'],
+    ['pr', 'rectal', 'per rectum', 'suppository'],
+    ['supp', 'suppository', 'rectal'],
+    // Pain syndromes
+    ['ponv', 'postoperative nausea', 'postoperative vomiting'],
+    ['emergence', 'emergence delirium', 'emergence agitation', 'precedex'],
+    // Specific peds scenarios
+    ['routine ga', 'general anesthesia', 'ga setup', 'standard induction'],
+    ['room setup', 'pre-case', 'precase', 'set up', 'setup', 'equipment check'],
+    ['iv setup', 'iv tubing', 'drip set', 'drip', 'burette', 'buretrol', 'microdrip', 'macrodrip', 'gtt', 'tubing', 'iv line'],
+    ['ent', 'ear nose throat', 'tonsils', 't&a', 'tonsillectomy', 'adenoidectomy'],
+    ['eye', 'ophtho', 'ophthalmology', 'strabismus'],
+    ['ndmr', 'non-depolarizing', 'rocuronium', 'vecuronium', 'cisatracurium', 'atracurium'],
+  ];
+
+  // Build the synonym map: term → set of equivalent terms
+  const SYNONYM_MAP = new Map();
+  SYNONYM_CLASSES.forEach(cls => {
+    cls.forEach(t => {
+      const tl = t.toLowerCase();
+      if (!SYNONYM_MAP.has(tl)) SYNONYM_MAP.set(tl, new Set());
+      cls.forEach(other => SYNONYM_MAP.get(tl).add(other.toLowerCase()));
+    });
+  });
+  const SYNONYM_TERMS_SORTED = (function() {
+    const all = [];
+    SYNONYM_MAP.forEach((_, k) => { if (all.indexOf(k) === -1) all.push(k); });
+    all.sort((a,b) => b.length - a.length);
+    return all;
+  })();
+
+  function _isPureWord(s) { return /^[a-z][a-z ]*$/.test(s); }
+  function _hasAtBoundary(haystack, needle) {
+    if (!_isPureWord(needle)) return haystack.indexOf(needle) !== -1;
+    const re = new RegExp('(^|[^a-z])' + needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^a-z]|$)');
+    return re.test(haystack);
+  }
+  function collectSynonymsForText(text) {
+    const lower = text.toLowerCase();
+    const found = new Set();
+    SYNONYM_TERMS_SORTED.forEach(term => {
+      let hit = false;
+      if (_isPureWord(term)) {
+        const re = new RegExp('(^|[^a-z])' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^a-z]|$)', 'i');
+        hit = re.test(lower);
+      } else {
+        hit = lower.indexOf(term) !== -1;
+      }
+      if (hit) SYNONYM_MAP.get(term).forEach(s => found.add(s));
+    });
+    return Array.from(found);
+  }
+  function expandQuery(query) {
+    const q = query.trim().toLowerCase();
+    if (!q) return { canonical: '', expanded: [] };
+    const expanded = new Set([q]);
+    SYNONYM_TERMS_SORTED.forEach(term => {
+      if (term === q) {
+        SYNONYM_MAP.get(term).forEach(s => expanded.add(s));
+        return;
+      }
+      if (q.length > term.length) {
+        if (_hasAtBoundary(q, term)) SYNONYM_MAP.get(term).forEach(s => expanded.add(s));
+      } else if (term.length > q.length) {
+        if (_hasAtBoundary(term, q)) SYNONYM_MAP.get(term).forEach(s => expanded.add(s));
+      }
+    });
+    return { canonical: q, expanded: Array.from(expanded) };
+  }
+
+  // ============ SEARCH INDEX ============
+  let SEARCH_INDEX = [];
+  let SEARCH_BUILT = false;
+  let _indexingMode = null;
+
+  function buildSearchIndex() {
+    if (SEARCH_BUILT) return;
+    const savedStage = stage.innerHTML;
+    const savedCrumbs = crumbsEl.innerHTML;
+    const savedPath = path.slice();
+    const savedCtx = JSON.parse(JSON.stringify(ctx));
+    Object.values(STEP_REGISTRY).forEach(step => {
+      _indexingMode = {key: step.key, label: step.label, parents: step.parents, content: [], titles: []};
+      try { ctx = {}; step.render(); } catch(e) {}
+      const contentText = _indexingMode.content.join(' ');
+      const titleText = _indexingMode.titles.join(' ');
+      const baseSearchable = (step.label + ' ' + titleText + ' ' + contentText).toLowerCase();
+      const synonymWords = collectSynonymsForText(baseSearchable);
+      const enrichedSearchable = baseSearchable + ' ' + synonymWords.join(' ');
+      SEARCH_INDEX.push({
+        key: step.key, label: step.label, parents: step.parents,
+        titleText, content: contentText,
+        searchable: enrichedSearchable,
+        synonymsHit: synonymWords
+      });
+    });
+    _indexingMode = null;
+    stage.innerHTML = savedStage;
+    crumbsEl.innerHTML = savedCrumbs;
+    path = savedPath;
+    ctx = savedCtx;
+    SEARCH_BUILT = true;
+  }
+
+  // ============ SEARCH UI ============
+  const searchOverlay = document.getElementById('search-overlay');
+  const searchInput = document.getElementById('search-input');
+  const searchResults = document.getElementById('search-results');
+  function openSearch() {
+    if (!SEARCH_BUILT) buildSearchIndex();
+    searchOverlay.classList.add('active');
+    searchInput.value = '';
+    searchResults.innerHTML = '<div class="search-empty">Type to search drugs, scenarios, equipment…</div>';
+    setTimeout(() => searchInput.focus(), 50);
+  }
+  function closeSearch() { searchOverlay.classList.remove('active'); }
+  document.getElementById('search-btn').onclick = openSearch;
+  document.getElementById('search-close').onclick = closeSearch;
+  document.getElementById('home-btn').onclick = goHome;
+  searchOverlay.addEventListener('click', function(e) { if (e.target === searchOverlay) closeSearch(); });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === '/' && document.activeElement.tagName !== 'INPUT') { e.preventDefault(); openSearch(); }
+    else if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openSearch(); }
+    else if (e.key === 'Escape' && searchOverlay.classList.contains('active')) closeSearch();
+  });
+
+  function escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  function highlight(text, terms) {
+    if (!text) return '';
+    let html = text;
+    terms.forEach(t => {
+      if (!t) return;
+      const re = new RegExp('(' + escRe(t) + ')', 'gi');
+      html = html.replace(re, '<mark>$1</mark>');
+    });
+    return html;
+  }
+  function makeSnippet(content, terms, maxLen) {
+    maxLen = maxLen || 140;
+    if (!content) return '';
+    const lower = content.toLowerCase();
+    let bestIdx = -1;
+    for (const t of terms) {
+      const i = lower.indexOf(t);
+      if (i !== -1 && (bestIdx === -1 || i < bestIdx)) bestIdx = i;
+    }
+    if (bestIdx === -1) {
+      return content.slice(0, maxLen) + (content.length > maxLen ? '…' : '');
+    }
+    const start = Math.max(0, bestIdx - 30);
+    const end = Math.min(content.length, start + maxLen);
+    let s = content.slice(start, end);
+    if (start > 0) s = '…' + s;
+    if (end < content.length) s = s + '…';
+    return s;
+  }
+
+  searchInput.addEventListener('input', function() {
+    const q = searchInput.value.trim();
+    if (!q) { searchResults.innerHTML = '<div class="search-empty">Type to search…</div>'; return; }
+    const { canonical, expanded } = expandQuery(q);
+    const lowerExp = expanded.map(s => s.toLowerCase());
+    const matches = [];
+    SEARCH_INDEX.forEach(entry => {
+      let bestScore = 0;
+      let bestTerm = null;
+      let bestViaSynonym = false;
+      lowerExp.forEach(term => {
+        if (!term) return;
+        const inLabel = entry.label.toLowerCase().indexOf(term) !== -1;
+        const inSearchable = entry.searchable.indexOf(term) !== -1;
+        if (!inLabel && !inSearchable) return;
+        let score = 0;
+        if (inLabel) score += 10;
+        if (inSearchable) score += 1;
+        if (term === canonical) score += 5;
+        // Was this only matched through synonym enrichment (not in base content)?
+        const inBase = entry.content.toLowerCase().indexOf(term) !== -1 || entry.titleText.toLowerCase().indexOf(term) !== -1 || entry.label.toLowerCase().indexOf(term) !== -1;
+        const viaSynonym = !inBase && entry.synonymsHit.indexOf(term) !== -1;
+        if (viaSynonym) score -= 2; // de-prioritize synonym-only matches slightly
+        if (score > bestScore) { bestScore = score; bestTerm = term; bestViaSynonym = viaSynonym; }
+      });
+      if (bestScore > 0) matches.push({entry, score: bestScore, matchTerm: bestTerm, viaSynonym: bestViaSynonym});
+    });
+    matches.sort((a,b) => b.score - a.score);
+    if (matches.length === 0) {
+      searchResults.innerHTML = '<div class="search-empty">No matches for "' + q + '"</div>';
+      return;
+    }
+    searchResults.innerHTML = '';
+    matches.slice(0, 50).forEach(m => {
+      const div = el('div', 'search-result');
+      const title = highlight(m.entry.label, [m.matchTerm]);
+      const pathStr = m.entry.parents.join(' › ');
+      const snippet = makeSnippet(m.entry.content || m.entry.titleText, [m.matchTerm]);
+      const snippetHtml = highlight(snippet, [m.matchTerm]);
+      let html = '<div class="search-result-title">' + title + '</div>';
+      if (pathStr) html += '<div class="search-result-path">' + pathStr + '</div>';
+      if (snippetHtml) html += '<div class="search-result-snippet">' + snippetHtml + '</div>';
+      if (m.viaSynonym && m.matchTerm !== canonical) {
+        html += '<div class="search-result-via">matched via synonym: <em>' + m.matchTerm + '</em></div>';
+      }
+      div.innerHTML = html;
+      div.onclick = function() {
+        closeSearch();
+        // Navigate by reconstructing path from parents
+        path = [];
+        m.entry.parents.forEach((p, i) => {
+          // Try to find a step whose label matches; we just create breadcrumbs without re-rendering
+        });
+        const step = STEP_REGISTRY[m.entry.key];
+        if (step) go(step.label, step.key, step.render, true);
+      };
+      searchResults.appendChild(div);
+    });
+  });
+
+
+  // ============ PATIENT INPUT ============
+  function openPatientInput() {
+    go('Patient', 'patient', renderPatientInput, true);
+  }
+  function renderPatientInput() {
+    title('Patient', 'Enter age and weight. Real weight beats age estimate. Both fields are optional but at least one is needed.');
+    const form = el('div');
+    // Age row — months OR years
+    function input(labelText, key, unit, type) {
+      const row = el('div', 'input-row');
+      row.appendChild(el('label', null, labelText));
+      const inp = document.createElement('input');
+      inp.type = type || 'number';
+      inp.inputMode = 'decimal';
+      inp.step = 'any';
+      inp.min = '0';
+      if (patient[key] != null && patient[key] !== '') inp.value = patient[key];
+      inp.addEventListener('input', function() {
+        const v = inp.value.trim();
+        patient[key] = (v === '' ? null : Number(v));
+        // Clear sibling if user typed in one of the paired fields
+        if (key === 'ageMonths' && v !== '') patient.ageYears = null;
+        if (key === 'ageYears' && v !== '') patient.ageMonths = null;
+        if (key === 'weightKg' && v !== '') patient.weightLb = null;
+        if (key === 'weightLb' && v !== '') patient.weightKg = null;
+        savePatient();
+        renderPatientBanner();
+        renderEst();
+      });
+      row.appendChild(inp);
+      row.appendChild(el('span', 'unit', unit));
+      form.appendChild(row);
+      return inp;
+    }
+    input('Age — months', 'ageMonths', 'mo (use for <2yr)');
+    input('Age — years', 'ageYears', 'yr (use for ≥2yr)');
+    input('Weight — kg', 'weightKg', 'kg (preferred)');
+    input('Weight — lb', 'weightLb', 'lb');
+    stage.appendChild(form);
+
+    const est = el('div');
+    est.id = '__est_disp';
+    stage.appendChild(est);
+    function renderEst() {
+      const w = calcWeight();
+      const ew = estimatedWeight();
+      const wTyped = (patient.weightKg != null && patient.weightKg !== '') || (patient.weightLb != null && patient.weightLb !== '');
+      let html = '';
+      if (ew != null) {
+        html += '<div class="note info"><strong>Age-based estimate:</strong> ' + roundMg(ew) + ' kg<br><span style="font-size:11px;opacity:0.8">APLS/Luscombe formula. Used only if no weight is entered.</span></div>';
+      }
+      if (w != null) {
+        const lb = w * 2.2;
+        const used = wTyped ? 'typed weight' : 'age estimate';
+        html += '<div class="note success"><strong>Active weight:</strong> ' + roundMg(w) + ' kg (' + roundMg(lb) + ' lb)<br><span style="font-size:11px;opacity:0.8">Source: ' + used + '. All doses use this.</span></div>';
+      }
+      est.innerHTML = html;
+    }
+    renderEst();
+
+    const done = el('button', 'btn-primary', 'Done');
+    done.onclick = function() {
+      if (!hasAnyPatient()) {
+        alert('Enter at least an age or a weight.');
+        return;
+      }
+      goHome();
+    };
+    stage.appendChild(done);
+    const clr = el('button', 'btn-secondary', 'Clear patient');
+    clr.onclick = function() {
+      if (confirm('Clear age and weight?')) { clearPatient(); renderPatientBanner(); goHome(); }
+    };
+    stage.appendChild(clr);
+  }
+  registerStep('patient', 'Patient', renderPatientInput, []);
+
+  // ============ HOME ============
+  function renderHome() {
+    if (!hasAnyPatient()) {
+      title('Welcome', 'Start by entering the patient\'s age and/or weight. Everything downstream uses these.');
+      const enter = el('button', 'btn-primary', 'Enter age & weight');
+      enter.onclick = openPatientInput;
+      stage.appendChild(enter);
+      stage.appendChild(el('div', 'note', '<strong>Tip:</strong> If you only have an age, the APLS/Luscombe formula will estimate weight as a fallback (<12mo: 0.5·mo+4 · 12–24mo: 2·yr+8 · 1–5yr: 2·yr+8 · >5yr: 3·yr+7). Doses still calculate — flagged as estimated.'));
+      stage.appendChild(el('div', 'divider', 'Reference (no patient needed)'));
+      optGrid([
+        { title: 'Normal vitals by age', sub: 'HR, BP, RR — Coté', onClick: () => go('Normal vitals', 'ref-vitals', renderVitals) },
+        { title: 'Normal labs by age', sub: 'Hgb, Hct, K+, glucose, BUN', onClick: () => go('Normal labs', 'ref-labs', renderLabs) },
+        { title: 'Drug concentrations', sub: 'Editable lookup table', onClick: () => go('Drug concentrations', 'ref-conc', renderConcentrations) },
+      ]);
+      return;
+    }
+    // Patient is set — show home with sections in order of frequency-of-use
+    title('Home');
+
+    // Favorites first (if any) — user-customized pins
+    if (favorites.length > 0) {
+      sectionHead('Favorites');
+      const opts = favorites.map(k => {
+        const step = STEP_REGISTRY[k];
+        if (!step) return null;
+        return { title: '★ ' + step.label, onClick: () => go(step.label, step.key, step.render, true) };
+      }).filter(Boolean);
+      if (opts.length) optGrid(opts);
+    }
+
+    // 1 — ROUTINE: stuff you reach for in every case, in order: room setup → GA → induction variants → MABL
+    sectionHead('Routine — scenarios & bundles');
+    optGrid([
+      { title: 'Room setup', sub: 'Pre-case: circuit, mask, OPA, LMA, ETT, blade, BP cuff, vent', onClick: () => go('Room setup', 'b-room', renderRoomSetup) },
+      { title: 'Routine GA', sub: 'Premed → induction → paralytic → maintenance → reversal → PONV → analgesia', onClick: () => go('Routine GA', 'b-routineGA', renderBundleRoutineGA) },
+      { title: 'Mask induction', sub: 'Inhalational, then IV access', onClick: () => go('Mask induction', 'b-mask', renderBundleMask) },
+      { title: 'RSI', sub: 'Rapid sequence — preox, hypnotic + paralytic', onClick: () => go('RSI', 'b-rsi', renderBundleRSI) },
+      { title: 'MABL', sub: 'Maximum allowable blood loss — set transfusion threshold', onClick: () => go('MABL', 'eq-mabl', renderMABL) },
+    ]);
+
+    // 2 — DRUG CLASSES
+    sectionHead('Drug classes');
+    optGrid([
+      { title: 'Pre-op / premedication', sub: 'Midaz, dexmedetomidine, Tylenol', onClick: () => go('Pre-op', 'cat-preop', renderPreop) },
+      { title: 'Induction', sub: 'Propofol, ketamine, etomidate', onClick: () => go('Induction', 'cat-induction', renderInduction) },
+      { title: 'Muscle relaxants', sub: 'Succ, roc, vec, cis, atracurium', onClick: () => go('Muscle relaxants', 'cat-nmb', renderNMB) },
+      { title: 'Reversal', sub: 'Sugammadex, neostigmine, naloxone, flumazenil', onClick: () => go('Reversal', 'cat-reversal', renderReversal) },
+      { title: 'Opioids', sub: 'Fentanyl, morphine, hydromorphone, remifentanil', onClick: () => go('Opioids', 'cat-opioids', renderOpioids) },
+      { title: 'Analgesics — non-opioid', sub: 'Tylenol, toradol, ibuprofen, dexmed', onClick: () => go('Non-opioid analgesics', 'cat-analgesics', renderAnalgesics) },
+      { title: 'Antiemetics', sub: 'Zofran, dex, droperidol, reglan', onClick: () => go('Antiemetics', 'cat-antiemetics', renderAntiemetics) },
+      { title: 'Hemodynamic meds', sub: 'Ephedrine, phenyl, labetalol, esmolol, lasix', onClick: () => go('Hemodynamic meds', 'cat-hemodynamic', renderHemodynamic) },
+      { title: 'Vasoactive infusions', sub: 'Epi, norepi, dopamine, milrinone (rule of 6s)', onClick: () => go('Vasoactive infusions', 'cat-vasoactive', renderVasoactive) },
+      { title: 'Antibiotics', sub: 'Cefazolin, vanco, clinda, gent, ceftriaxone', onClick: () => go('Antibiotics', 'cat-abx', renderAbx) },
+      { title: 'Local anesthetics', sub: 'Max doses, caudal volumes (Armitage)', onClick: () => go('Local anesthetics', 'cat-la', renderLA) },
+      { title: 'Emergency drugs (drawer)', sub: 'All-in-one: atropine, epi, Ca, bicarb, dextrose, dantrolene', urgent: true, onClick: () => go('Emergency drugs', 'cat-emergency', renderEmergency) },
+    ]);
+
+    // 3 — EQUIPMENT (intraop random-access)
+    sectionHead('Equipment & vent');
+    optGrid([
+      { title: 'ETT (oral & nasal)', sub: 'Size, depth at teeth/nose', onClick: () => go('ETT', 'eq-ett', renderETT) },
+      { title: 'Airway adjuncts', sub: 'OPA, mask, LMA, blade, reservoir bag', onClick: () => go('Airway adjuncts', 'eq-airway', renderAirway) },
+      { title: 'BP cuff', sub: 'Size by limb circumference', onClick: () => go('BP cuff', 'eq-bpcuff', renderBPCuff) },
+      { title: 'Ventilation', sub: 'Tidal volumes, RR by age', onClick: () => go('Ventilation', 'eq-vent', renderVent) },
+      { title: 'IV setup', sub: 'Tubing strategy: burette / microdrip / macrodrip', onClick: () => go('IV setup', 'eq-ivsetup', renderIVSetup) },
+      { title: 'Fluids & blood', sub: 'Maintenance, surgical, EBV, transfusion', onClick: () => go('Fluids & blood', 'eq-fluids', renderFluids) },
+      { title: 'Defibrillation / cardioversion', sub: 'J/kg standalone reference', onClick: () => go('Defibrillation', 'eq-defib', renderDefib) },
+    ]);
+
+    // 4 — EMERGENT (all urgent scenarios in one place)
+    sectionHead('Emergent situations');
+    optGrid([
+      { title: 'Code blue / PALS', sub: 'Cardiac arrest — drugs + defib J/kg + cardioversion', urgent: true, onClick: () => go('Code blue / PALS', 'em-pals', renderPALS) },
+      { title: 'Anaphylaxis', sub: 'Epi IM/IV, fluids, adjuncts', urgent: true, onClick: () => go('Anaphylaxis', 'em-anaphylaxis', renderAnaphylaxis) },
+      { title: 'Hemorrhage / MTP', sub: 'Massive transfusion, balanced ratios, Ca, TXA', urgent: true, onClick: () => go('Hemorrhage', 'em-hemorrhage', renderHemorrhage) },
+      { title: 'Laryngospasm', sub: 'CPAP, deepen, succ IV/IM', urgent: true, onClick: () => go('Laryngospasm', 'em-laryngospasm', renderLaryngospasm) },
+      { title: 'Malignant hyperthermia', sub: 'Dantrolene/Ryanodex, cool, treat hyperK', urgent: true, onClick: () => go('Malignant hyperthermia', 'em-mh', renderMH) },
+      { title: 'LAST (lipid rescue)', sub: 'Local anesthetic systemic toxicity', urgent: true, onClick: () => go('LAST', 'em-last', renderLAST) },
+      { title: 'Hyperkalemia', sub: 'Ca, insulin/dextrose, bicarb, β-2', urgent: true, onClick: () => go('Hyperkalemia', 'em-hyperk', renderHyperK) },
+      { title: 'Status epilepticus', sub: 'Benzos → loading → infusion', urgent: true, onClick: () => go('Status epilepticus', 'em-status', renderStatus) },
+    ]);
+
+    // 5 — REFERENCE (look up once, then move on)
+    sectionHead('Reference');
+    optGrid([
+      { title: 'Normal vitals by age', sub: 'HR, BP, RR — Coté', onClick: () => go('Normal vitals', 'ref-vitals', renderVitals) },
+      { title: 'Normal labs by age', sub: 'Hgb, Hct, K+, glucose, BUN', onClick: () => go('Normal labs', 'ref-labs', renderLabs) },
+      { title: 'Opioid conversion', sub: 'Morphine equivalents', onClick: () => go('Opioid conversion', 'ref-opioid-conv', renderOpioidConv) },
+      { title: 'Midazolam route equivalence', sub: 'IV / IM / PO / nasal / PR', onClick: () => go('Midazolam routes', 'ref-midaz-routes', renderMidazRoutes) },
+      { title: 'Ketamine route equivalence', sub: 'IV / IM / PO / nasal / PR', onClick: () => go('Ketamine routes', 'ref-ketamine-routes', renderKetamineRoutes) },
+      { title: 'Drug concentrations', sub: 'Editable lookup table', onClick: () => go('Drug concentrations', 'ref-conc', renderConcentrations) },
+      { title: 'Dose caps', sub: 'What\'s capped, where, why', onClick: () => go('Dose caps', 'ref-caps', renderCaps) },
+    ]);
+  }
+
+  // ============ FAVORITES ============
+  function toggleFav(key) {
+    const i = favorites.indexOf(key);
+    if (i === -1) favorites.push(key);
+    else favorites.splice(i, 1);
+    saveFavorites();
+  }
+  function favStar(key) {
+    if (_indexingMode) return null;
+    const star = el('button', 'fav-star' + (favorites.indexOf(key) !== -1 ? ' on' : ''), favorites.indexOf(key) !== -1 ? '★' : '☆');
+    star.title = 'Favorite this page';
+    star.onclick = function() {
+      toggleFav(key);
+      star.classList.toggle('on');
+      star.textContent = favorites.indexOf(key) !== -1 ? '★' : '☆';
+    };
+    return star;
+  }
+  function titleWithFav(text, sub, key) {
+    if (_indexingMode) { _indexingMode.titles.push(text); if (sub) _indexingMode.content.push(sub); return; }
+    const wrap = el('div');
+    wrap.style.cssText = 'display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin:4px 0 6px 0;';
+    const h = el('h1', 'step-title', text);
+    h.style.margin = '0';
+    wrap.appendChild(h);
+    const star = favStar(key);
+    if (star) wrap.appendChild(star);
+    stage.appendChild(wrap);
+    if (sub) stage.appendChild(el('p', 'step-sub', sub));
+  }
+
+
+  // ============ DRUG CATEGORY PAGES ============
+
+  function renderPreop() {
+    titleWithFav('Pre-op / premedication', 'Pre-induction anxiolysis, antisialagogues, analgesia.', 'cat-preop');
+    sectionHead('Sedation / anxiolysis');
+    drug({ name: 'Midazolam', dose: '0.05 mg/kg IV', sub: 'Induction adjunct / anxiolysis', perKg: 0.05, cap: 2, conc: 'midazolam_iv',
+      src: 'Adult cap 2 mg single dose; titrate. Coté.' });
+    drug({ name: 'Midazolam', dose: '0.5 mg/kg PO syrup', sub: 'Premed, 20–30 min onset', perKg: 0.5, cap: 15, conc: 'midazolam_po_syrup',
+      src: 'Cap 15 mg (some institutions 20). Onset 15–30 min, peak 30 min. Coté.' });
+    drug({ name: 'Midazolam', dose: '0.2 mg/kg intranasal', sub: 'No IV, 3–5 min onset', perKg: 0.2, cap: 5, conc: 'midazolam_iv',
+      src: 'Bitter, stings. Use IV-form 5 mg/mL. Cap ~5 mg/nostril. Coté.' });
+    drug({ name: 'Dexmedetomidine', dose: '2 mcg/kg intranasal', sub: 'Anxiolysis, non-respiratory depressant', perKg: 2, unit: 'mcg', cap: 100, conc: 'dexmedetomidine',
+      src: 'Onset 25–45 min. Causes mild bradycardia/hypotension. Use the 100 mcg/mL vial.' });
+    drug({ name: 'Ketamine', dose: '3–6 mg/kg PO', sub: 'Premed, mix in juice', perKgLow: 3, perKgHigh: 6, cap: 150,
+      src: 'Use 100 mg/mL IM conc orally mixed with sweet juice. Onset 20–30 min. Coté.' });
+
+    sectionHead('Antisialagogue / vagolysis');
+    drug({ name: 'Glycopyrrolate', dose: '0.004 mg/kg IM', sub: 'Pre-induction, dries secretions', perKg: 0.004, conc: 'glycopyrrolate',
+      src: 'Doesn\'t cross BBB. 4 mcg/kg.' });
+    drug({ name: 'Atropine', dose: '0.02 mg/kg IV', sub: 'No min (PALS 2020), max 0.5 mg', perKg: 0.02, cap: 0.5, conc: 'atropine',
+      src: 'PALS 2020: removed minimum 0.1 mg. May repeat once. Max 0.5 mg single.' });
+
+    sectionHead('Pre-op analgesia');
+    drug({ name: 'Acetaminophen', dose: '15 mg/kg PO/IV q6h', sub: 'Loading dose', perKg: 15, cap: 1000, conc: 'acetaminophen_iv',
+      src: 'Adult max single 1000 mg. Same dose PO or IV.' });
+    drug({ name: 'Acetaminophen', dose: '40 mg/kg PR', sub: 'Single PR loading dose', perKg: 40,
+      src: 'Higher PR dose due to variable absorption. Uncapped per institutional practice in <50 kg patients.' });
+    drug({ name: 'Ibuprofen', dose: '10 mg/kg PO', perKg: 10, cap: 400,
+      src: 'q6h. Avoid in renal/bleeding concerns.' });
+  }
+  registerStep('cat-preop', 'Pre-op / premedication', renderPreop, ['Home']);
+
+  function renderInduction() {
+    titleWithFav('Induction', 'IV induction agents. Doses for healthy ASA 1-2.', 'cat-induction');
+    drug({ name: 'Propofol', dose: '2–3.5 mg/kg IV', sub: 'Standard induction', perKgLow: 2, perKgHigh: 3.5, cap: 200, conc: 'propofol',
+      src: 'Cap 200 mg single bolus (adult equivalent). Higher end for healthy young patients, lower end if hemodynamic concerns.' });
+    drug({ name: 'Ketamine', dose: '1–3 mg/kg IV', sub: 'Hemodynamically stable induction', perKgLow: 1, perKgHigh: 3, cap: 200, conc: 'ketamine_iv',
+      src: 'Sympathomimetic — useful in shock. Co-administer glyco/atropine for secretions.' });
+    drug({ name: 'Ketamine', dose: '5 mg/kg IM', sub: 'No-IV induction', perKg: 5, conc: 'ketamine_im',
+      src: 'Onset 3–5 min. 50 mg/mL conc (or 100 for high doses). Uncapped — titrate.' });
+    drug({ name: 'Etomidate', dose: '0.2–0.3 mg/kg IV', sub: 'Cardiac-stable induction', perKgLow: 0.2, perKgHigh: 0.3, cap: 40,
+      src: 'Adrenal suppression even with single dose — debated significance. Useful in unstable cardiac patients.' });
+    drug({ name: 'Lidocaine', dose: '1–1.5 mg/kg IV', sub: 'Pre-induction, blunt response', perKgLow: 1, perKgHigh: 1.5, cap: 100, conc: 'lidocaine_iv',
+      src: '1–2 min before propofol. Reduces injection pain, blunts laryngoscopy response.' });
+
+    sectionHead('Inhalational');
+    note('<strong>Sevoflurane mask induction:</strong> 8% in N₂O/O₂ or O₂. Most pediatric inductions in <6yr who refuse IV. Watch for breath-holding, laryngospasm at light planes. See <a href="#" onclick="event.preventDefault();window.__gMask&&__gMask()">Mask induction bundle</a> for full setup.', 'info');
+    setTimeout(() => { window.__gMask = function() { go('Mask induction', 'b-mask', renderBundleMask); }; }, 0);
+  }
+  registerStep('cat-induction', 'Induction', renderInduction, ['Home']);
+
+  function renderNMB() {
+    titleWithFav('Muscle relaxants', 'Succinylcholine + non-depolarizers. Intubation + maintenance doses.', 'cat-nmb');
+
+    sectionHead('Succinylcholine (depolarizing)');
+    const m = ageMonths();
+    let succLow = 1, succHigh = 1;
+    if (m != null && m < 6) { succLow = 2; succHigh = 3; }
+    else if (m != null && m < 24) { succLow = 1; succHigh = 2; }
+    drug({ name: 'Succinylcholine', dose: '<6mo: 2–3 · 6–24mo: 1–2 · ≥2yr: 1 mg/kg IV', sub: 'Age-tiered per FDA label',
+      perKgLow: succLow, perKgHigh: succHigh, cap: 150, conc: 'succinylcholine',
+      src: 'FDA label: infants/small peds 2 mg/kg, older peds/adolescents 1 mg/kg. <6mo 3 mg/kg reflects larger Vd. Cap 150 mg single. Black-box: hyperK in undiagnosed myopathy.' });
+    drug({ name: 'Succinylcholine IM', dose: '4 mg/kg', sub: 'Laryngospasm / no IV', perKg: 4, cap: 150, conc: 'succinylcholine',
+      src: 'Onset 2–3 min IM. Common indication: laryngospasm during mask induction with no IV. Often given with atropine to prevent bradycardia. FDA IM cap 150 mg.' });
+
+    sectionHead('Rocuronium');
+    drug({ name: 'Rocuronium', dose: '0.6 mg/kg IV', sub: 'Standard intubation', perKg: 0.6, conc: 'rocuronium',
+      src: 'Onset 60–90 sec. Duration 30–45 min. Reverse with sugammadex.' });
+    drug({ name: 'Rocuronium', dose: '1.2 mg/kg IV', sub: 'RSI dose', perKg: 1.2, conc: 'rocuronium',
+      src: 'Onset 45–60 sec (similar to succ). Duration 60+ min — be sure to have sugammadex.' });
+    drug({ name: 'Rocuronium', dose: '0.15 mg/kg IV', sub: 'Maintenance', perKg: 0.15, conc: 'rocuronium' });
+
+    sectionHead('Vecuronium');
+    drug({ name: 'Vecuronium', dose: '0.1 mg/kg IV', sub: 'Intubation', perKg: 0.1, conc: 'vecuronium',
+      src: 'Onset 2–3 min. Duration 30–40 min.' });
+    drug({ name: 'Vecuronium', dose: '0.025 mg/kg IV', sub: 'Maintenance', perKg: 0.025, conc: 'vecuronium' });
+
+    sectionHead('Cisatracurium');
+    drug({ name: 'Cisatracurium', dose: '0.1 mg/kg IV', sub: 'Intubation', perKg: 0.1, conc: 'cisatracurium',
+      src: 'Hofmann elimination — no renal/hepatic dependence. Useful in MODS, renal failure.' });
+    drug({ name: 'Cisatracurium', dose: '0.02 mg/kg IV', sub: 'Maintenance', perKg: 0.02, conc: 'cisatracurium' });
+
+    sectionHead('Atracurium');
+    drug({ name: 'Atracurium', dose: '0.5 mg/kg IV', sub: 'Intubation', perKg: 0.5, conc: 'atracurium',
+      src: 'Histamine release at higher doses — can drop BP, cause bronchospasm.' });
+    drug({ name: 'Atracurium', dose: '0.1 mg/kg IV', sub: 'Maintenance', perKg: 0.1, conc: 'atracurium' });
+
+    note('Contraindications to succinylcholine in peds: known/suspected myopathy (Duchenne), denervation injury >72h old, severe burns >24h old, severe hyperK, known MH susceptibility, prolonged immobilization.', 'warn');
+  }
+  registerStep('cat-nmb', 'Muscle relaxants', renderNMB, ['Home']);
+
+  function renderReversal() {
+    titleWithFav('Reversal', 'Paralytic, opioid, benzo, anticholinergic reversal.', 'cat-reversal');
+
+    sectionHead('Neuromuscular blockade (non-depolarizers)');
+    drug({ name: 'Sugammadex', dose: '2 mg/kg IV', sub: 'Routine reversal (TOF ≥2)', perKg: 2, conc: 'sugammadex',
+      src: 'For roc/vec only. Won\'t work for cis or atrac. Onset 2–3 min.' });
+    drug({ name: 'Sugammadex', dose: '4 mg/kg IV', sub: 'Deep block (PTC 1–2)', perKg: 4, conc: 'sugammadex' });
+    drug({ name: 'Sugammadex', dose: '16 mg/kg IV', sub: 'Emergent — immediate reversal', perKg: 16, conc: 'sugammadex',
+      src: 'Can\'t intubate / can\'t ventilate after roc RSI. Uncapped. Verify vial stock — at 16 mg/kg an adolescent can need 4+ vials.' });
+    drug({ name: 'Neostigmine', dose: '0.06 mg/kg IV', sub: 'With glyco — for non-roc/vec or sugammadex unavailable', perKg: 0.06, cap: 5, conc: 'neostigmine',
+      src: 'Give with glyco 0.01 mg/kg (or atropine 0.02 mg/kg) to block muscarinic effects. Need TOF ≥2 twitches.' });
+    drug({ name: 'Glycopyrrolate', dose: '0.01 mg/kg IV', sub: 'With neostigmine', perKg: 0.01, conc: 'glycopyrrolate' });
+
+    sectionHead('Opioid');
+    drug({ name: 'Naloxone — full reversal', dose: '0.01 mg/kg IV', sub: 'Overdose / arrest', perKg: 0.01, cap: 2, conc: 'naloxone',
+      src: 'PALS dose. For postop respiratory depression use lower titrated dose (see below).' });
+    drug({ name: 'Naloxone — postop', dose: '0.001–0.005 mg/kg IV', sub: 'Titrate to RR, avoid pain crisis', perKgLow: 0.001, perKgHigh: 0.005, conc: 'naloxone',
+      src: '1–5 mcg/kg titrated q2min. Full doses precipitate severe pain + sympathetic surge + APO.' });
+
+    sectionHead('Benzodiazepine');
+    drug({ name: 'Flumazenil', dose: '0.01 mg/kg IV', sub: 'May repeat q1min', perKg: 0.01, cap: 0.2, conc: 'flumazenil',
+      src: 'Avoid in chronic benzo users (seizure risk).' });
+
+    sectionHead('Anticholinergic toxicity');
+    drug({ name: 'Physostigmine', dose: '0.02 mg/kg IV', sub: 'Crosses BBB', perKg: 0.02, cap: 2, conc: 'physostigmine' });
+  }
+  registerStep('cat-reversal', 'Reversal', renderReversal, ['Home']);
+
+  function renderOpioids() {
+    titleWithFav('Opioids', 'Intraop analgesia. Doses in mcg/kg or mg/kg per agent.', 'cat-opioids');
+
+    sectionHead('Fentanyl');
+    drug({ name: 'Fentanyl', dose: '1–3 mcg/kg IV', sub: 'Induction', perKgLow: 1, perKgHigh: 3, cap: 100, unit: 'mcg', conc: 'fentanyl',
+      src: 'Cap 100 mcg single. ~100x morphine potency.' });
+    drug({ name: 'Fentanyl', dose: '4–6 mcg/kg IV', sub: 'Maintenance bolus / moderate stim', perKgLow: 4, perKgHigh: 6, unit: 'mcg', conc: 'fentanyl' });
+    drug({ name: 'Fentanyl', dose: '7–10 mcg/kg IV', sub: 'High-dose / cardiac', perKgLow: 7, perKgHigh: 10, unit: 'mcg', conc: 'fentanyl' });
+
+    sectionHead('Morphine');
+    drug({ name: 'Morphine', dose: '0.05–0.1 mg/kg IV', sub: 'Standard bolus', perKgLow: 0.05, perKgHigh: 0.1, cap: 10, conc: 'morphine' });
+
+    sectionHead('Hydromorphone');
+    drug({ name: 'Hydromorphone', dose: '10–15 mcg/kg IV', sub: 'Standard bolus', perKgLow: 10, perKgHigh: 15, cap: 1500, unit: 'mcg', conc: 'hydromorphone',
+      src: '~6–7x morphine potency. 1 mg = ~6 mg morphine.' });
+
+    sectionHead('Remifentanil');
+    drug({ name: 'Remifentanil', dose: '0.05–0.5 mcg/kg/min', sub: 'Infusion only — context-sensitive 1/2 life independent of duration', custom: 'Infusion: 0.05–0.5 mcg/kg/min',
+      src: 'Useful for total IV anesthesia. Plan postop analgesia BEFORE turning off (rapid offset).' });
+
+    note('See <strong>Opioid conversion table</strong> for IV/PO morphine equivalents. Reduce calculated dose 25–50% for incomplete cross-tolerance when switching opioids.', 'info');
+  }
+  registerStep('cat-opioids', 'Opioids', renderOpioids, ['Home']);
+
+  function renderAnalgesics() {
+    titleWithFav('Non-opioid analgesics', 'Multimodal pain control.', 'cat-analgesics');
+    drug({ name: 'Acetaminophen', dose: '15 mg/kg IV/PO q6h', perKg: 15, cap: 1000, conc: 'acetaminophen_iv',
+      src: 'Adult max single 1000 mg. Daily max 75 mg/kg or 4 g.' });
+    drug({ name: 'Acetaminophen', dose: '12.5 mg/kg IV q4h', sub: 'Scheduled q4h', perKg: 12.5, cap: 1000, conc: 'acetaminophen_iv' });
+    drug({ name: 'Acetaminophen', dose: '40 mg/kg PR', sub: 'Single loading dose', perKg: 40,
+      src: 'Higher PR dose for variable absorption. Single dose only — don\'t repeat.' });
+    drug({ name: 'Toradol (ketorolac)', dose: '0.5 mg/kg IV', sub: 'Cap 15 mg single', perKg: 0.5, cap: 15, conc: 'toradol',
+      src: 'Evidence (Motov 2017, Duttchen 2017, Drwiega 2023): 15 mg IV equianalgesic to 30 mg with theoretically lower bleeding risk. FDA labels 30 mg for adults <65 / ≥50 kg; 15 mg is clinician choice supported by evidence.' });
+    drug({ name: 'Ibuprofen', dose: '10 mg/kg PO', sub: 'q6h', perKg: 10, cap: 400 });
+    drug({ name: 'Dexmedetomidine', dose: '0.5–1 mcg/kg IV bolus', sub: 'Adjunct analgesia + sedation', perKgLow: 0.5, perKgHigh: 1, unit: 'mcg', conc: 'dexmedetomidine',
+      src: 'Over 10 min to avoid hypotension. Useful for emergence delirium prevention.' });
+    drug({ name: 'Diphenhydramine', dose: '0.25 mg/kg IV', sub: 'Antiemetic / antihistamine', perKg: 0.25, cap: 25, conc: 'diphenhydramine' });
+  }
+  registerStep('cat-analgesics', 'Non-opioid analgesics', renderAnalgesics, ['Home']);
+
+  function renderAntiemetics() {
+    titleWithFav('Antiemetics', 'PONV prophylaxis + rescue.', 'cat-antiemetics');
+    drug({ name: 'Ondansetron', dose: '0.15 mg/kg IV', sub: 'PONV prophylaxis, end of case', perKg: 0.15, cap: 4, conc: 'ondansetron',
+      src: 'Cap 4 mg. QT prolongation — caution with other QT-prolonging agents.' });
+    drug({ name: 'Dexamethasone', dose: '0.5 mg/kg IV', sub: 'PONV prophylaxis, after induction', perKg: 0.5, cap: 8, conc: 'dexamethasone',
+      src: 'Cap 8 mg for PONV. Onset slow — give early.' });
+    drug({ name: 'Droperidol', dose: '0.03 mg/kg IV', sub: 'Rescue / refractory PONV', perKg: 0.03, cap: 1.25, conc: 'droperidol',
+      src: 'FDA black box for QT. Use with monitoring. Effective rescue.' });
+    drug({ name: 'Metoclopramide', dose: '0.1 mg/kg IV', sub: 'Less effective than 5-HT3 antagonists', perKg: 0.1, cap: 10, conc: 'metoclopramide' });
+    drug({ name: 'Diphenhydramine', dose: '0.25 mg/kg IV', sub: 'Vestibular component', perKg: 0.25, cap: 25, conc: 'diphenhydramine' });
+  }
+  registerStep('cat-antiemetics', 'Antiemetics', renderAntiemetics, ['Home']);
+
+  function renderEmergency() {
+    titleWithFav('Emergency drugs', 'Code, anaphylaxis, MH, refractory hypoTN. See scenario pages for treatment algorithms.', 'cat-emergency');
+
+    sectionHead('Anticholinergic / vagolytic');
+    drug({ name: 'Atropine', dose: '0.02 mg/kg IV', sub: 'No min (PALS 2020), max 0.5 mg single', perKg: 0.02, cap: 0.5, conc: 'atropine',
+      src: 'PALS 2020 removed 0.1 mg minimum. May repeat once.' });
+    drug({ name: 'Glycopyrrolate', dose: '0.01 mg/kg IV', sub: 'Doesn\'t cross BBB', perKg: 0.01, conc: 'glycopyrrolate' });
+
+    sectionHead('Vasopressors');
+    drug({ name: 'Ephedrine', dose: '0.2 mg/kg IV', sub: 'Indirect — ↑HR & ↑BP', perKg: 0.2, cap: 25, conc: 'ephedrine' });
+    drug({ name: 'Phenylephrine', dose: '1–10 mcg/kg IV', sub: 'Pure α — pressor without inotropy', perKgLow: 1, perKgHigh: 10, unit: 'mcg', conc: 'phenylephrine',
+      src: 'Reflex bradycardia. Use cautiously in pts where you need preserved HR.' });
+
+    sectionHead('β-blockers');
+    drug({ name: 'Labetalol', dose: '0.5 mg/kg IV', sub: 'Mixed α/β — for HTN', perKg: 0.5, cap: 20, conc: 'labetalol' });
+    drug({ name: 'Esmolol', dose: '0.1–0.5 mg/kg IV', sub: 'Ultra-short β — for HR control', perKgLow: 0.1, perKgHigh: 0.5, cap: 100, conc: 'esmolol' });
+
+    sectionHead('Epinephrine');
+    drug({ name: 'Epi — arrest (IV/IO)', dose: '0.01 mg/kg of 1:10,000', sub: '10 mcg/kg, q3–5 min', perKg: 0.01, cap: 1, conc: 'epi_1_10k',
+      src: 'PALS dose. 1:10,000 = 0.1 mg/mL.' });
+    drug({ name: 'Epi — ETT', dose: '0.1 mg/kg of 1:1000', sub: 'No IV/IO access', perKg: 0.1, cap: 2.5, conc: 'epi_1_1k',
+      src: 'Bridge until IV/IO obtained. 1:1000 = 1 mg/mL.' });
+    drug({ name: 'Epi — anaphylaxis IM', dose: '0.01 mg/kg of 1:1000', sub: 'Anterolateral thigh', perKg: 0.01, cap: 0.5, conc: 'epi_1_1k',
+      src: 'Repeat q5–15 min PRN. Max 0.5 mg single (adult max).' });
+
+    sectionHead('Calcium');
+    drug({ name: 'Calcium chloride', dose: '10–20 mg/kg IV', sub: 'Central line preferred', perKgLow: 10, perKgHigh: 20, cap: 2000, conc: 'CaCl',
+      src: 'For hyperK, hypoCa, CCB OD, hyperMg. 3x more elemental Ca than gluconate. Sclerosing — extravasation = necrosis.' });
+    drug({ name: 'Calcium gluconate', dose: '30–60 mg/kg IV', sub: 'Peripheral OK', perKgLow: 30, perKgHigh: 60, cap: 3000, conc: 'CaGluc',
+      src: 'Less sclerosing. Preferred if no central access.' });
+
+    sectionHead('Other');
+    drug({ name: 'Sodium bicarbonate', dose: '1–2 mEq/kg IV', sub: 'Acidosis, hyperK, TCA OD', perKgLow: 1, perKgHigh: 2, cap: 50, unit: 'mEq',
+      src: '8.4% = 1 mEq/mL. Slow push. NOT routine in arrest per PALS.' });
+    drug({ name: 'Dextrose', dose: '0.5 g/kg IV', sub: 'Hypoglycemia', perKg: 0.5, cap: 25, unit: 'g',
+      src: 'D10 5 mL/kg or D25 2 mL/kg (1 mL/kg if neonate of D10).' });
+    drug({ name: 'Hydrocortisone', dose: '2 mg/kg IV', sub: 'Anaphylaxis adjunct, stress dose', perKg: 2, cap: 100, conc: 'hydrocortisone' });
+    drug({ name: 'Magnesium sulfate', dose: '25–50 mg/kg IV', sub: 'Torsades, hypoMg, bronchospasm', perKgLow: 25, perKgHigh: 50, cap: 2000, conc: 'magnesium_sulfate',
+      src: 'Over 10–20 min (faster if torsades). 10% solution = 100 mg/mL.' });
+    drug({ name: 'Fluid bolus', dose: '10 mL/kg', sub: 'Shock — repeat as needed', custom: function() { const w = calcWeight(); return w == null ? '—' : Math.round(w * 10) + ' mL'; }() });
+    drug({ name: 'Fluid bolus', dose: '20 mL/kg', sub: 'Standard resuscitation', custom: function() { const w = calcWeight(); return w == null ? '—' : Math.round(w * 20) + ' mL'; }() });
+
+    sectionHead('MH (see scenario page)');
+    drug({ name: 'Dantrolene', dose: '2.5 mg/kg IV', sub: 'Repeat q5min, max 10 mg/kg', perKg: 2.5,
+      src: 'Reconstitute 20 mg vial with 60 mL sterile water (preservative-free). For a 30 kg child = 75 mg = 3.75 vials. Ryanodex 250 mg/vial reconstitutes faster.' });
+    drug({ name: 'Ryanodex', dose: '2.5 mg/kg IV', sub: 'Same dose, faster prep', perKg: 2.5,
+      src: '250 mg/vial. Reconstitute with 5 mL sterile water. MUCH faster than classic dantrolene.' });
+
+    sectionHead('LAST');
+    drug({ name: 'Intralipid 20% — bolus', dose: '1.5 mL/kg', sub: 'Over 1 min, lean body weight', custom: function() { const w = calcWeight(); return w == null ? '—' : roundMl(w * 1.5) + ' mL'; }(),
+      src: 'ASRA 2020. Can repeat q5min × 2.' });
+    drug({ name: 'Intralipid 20% — infusion', dose: '0.25 mL/kg/min', sub: 'Continuous; double if refractory', custom: function() { const w = calcWeight(); return w == null ? '—' : roundMl(w * 0.25) + ' mL/min'; }() });
+  }
+  registerStep('cat-emergency', 'Emergency drugs', renderEmergency, ['Home']);
+
+  function renderHemodynamic() {
+    titleWithFav('Hemodynamic meds', 'Bolus doses for BP/HR control. See infusions for continuous.', 'cat-hemodynamic');
+    drug({ name: 'Ephedrine', dose: '0.1–0.3 mg/kg IV', sub: 'Indirect — ↑BP + ↑HR', perKgLow: 0.1, perKgHigh: 0.3, cap: 25, conc: 'ephedrine' });
+    drug({ name: 'Phenylephrine', dose: '1–10 mcg/kg IV', sub: 'Pure α — ↑BP, reflex ↓HR', perKgLow: 1, perKgHigh: 10, unit: 'mcg', conc: 'phenylephrine' });
+    drug({ name: 'Labetalol', dose: '0.1–0.4 mg/kg IV', sub: 'Mixed α/β — for HTN', perKgLow: 0.1, perKgHigh: 0.4, cap: 20, conc: 'labetalol' });
+    drug({ name: 'Esmolol', dose: '0.1–0.5 mg/kg IV', sub: 'Ultra-short β — for HR/BP', perKgLow: 0.1, perKgHigh: 0.5, cap: 100, conc: 'esmolol' });
+    drug({ name: 'Furosemide', dose: '0.5–1 mg/kg IV', sub: 'Diuretic', perKgLow: 0.5, perKgHigh: 1, cap: 40, conc: 'furosemide' });
+    drug({ name: 'Atropine', dose: '0.02 mg/kg IV', sub: 'Bradycardia, max 0.5 mg', perKg: 0.02, cap: 0.5, conc: 'atropine' });
+  }
+  registerStep('cat-hemodynamic', 'Hemodynamic meds', renderHemodynamic, ['Home']);
+
+
+  function renderVasoactive() {
+    titleWithFav('Vasoactive infusions', 'Rule of 6s and standard rates. Titrate to effect.', 'cat-vasoactive');
+    note('<strong>Rule of 6s for bedside infusions:</strong> weight (kg) × 6 = mg drug in 100 mL. Then <strong>mL/hr on the pump = mcg/kg/min</strong>. Adjust the multiplier: ×0.6 for 0.1 mcg/kg/min units, ×60 for 10 mcg/kg/min units.', 'info');
+
+    const w = calcWeight();
+    function rate(rangeText, mgIn100ml) {
+      return rangeText + ' · ' + (w == null ? '— mg in 100 mL' : roundMg(mgIn100ml) + ' mg in 100 mL');
+    }
+
+    sectionHead('Inotropes / vasopressors');
+    drug({ name: 'Epinephrine', dose: '0.05–1 mcg/kg/min', sub: rate('Inotrope + chronotrope + bronchodilator', w * 6),
+      custom: w == null ? '—' : '1 mL/hr = 1 mcg/kg/min',
+      src: 'Use for septic shock with ↓ CO, anaphylaxis, post-arrest. ×6 rule mix.' });
+    drug({ name: 'Norepinephrine', dose: '0.05–1 mcg/kg/min', sub: rate('Pressor of choice for septic shock', w * 6),
+      custom: w == null ? '—' : '1 mL/hr = 1 mcg/kg/min' });
+    drug({ name: 'Phenylephrine', dose: '0.1–1 mcg/kg/min', sub: rate('Pure α — no inotropy', w * 6),
+      custom: w == null ? '—' : '1 mL/hr = 1 mcg/kg/min' });
+    drug({ name: 'Dopamine', dose: '1–20 mcg/kg/min', sub: rate('Dose-dep: renal/inotrope/vasopressor', w * 60),
+      custom: w == null ? '—' : '1 mL/hr = 10 mcg/kg/min' });
+    drug({ name: 'Dobutamine', dose: '1–20 mcg/kg/min', sub: rate('Pure β — inotrope', w * 60),
+      custom: w == null ? '—' : '1 mL/hr = 10 mcg/kg/min' });
+    drug({ name: 'Isoproterenol', dose: '0.1–1 mcg/kg/min', sub: rate('Pure β — for bradycardia / heart block', w * 6),
+      custom: w == null ? '—' : '1 mL/hr = 1 mcg/kg/min' });
+    drug({ name: 'Milrinone', dose: '0.5–1 mcg/kg/min', sub: rate('PDE-III — inodilator', w * 6),
+      custom: w == null ? '—' : '1 mL/hr = 1 mcg/kg/min',
+      src: 'Load 50–100 mcg/kg over 10 min first. Watch for hypotension.' });
+    drug({ name: 'Vasopressin', dose: '0.0001–0.0005 U/kg/min', sub: 'For catecholamine-resistant shock', custom: 'Special mix — units differ' });
+
+    sectionHead('Vasodilators');
+    drug({ name: 'Nitroprusside', dose: '0.5–10 mcg/kg/min', sub: rate('Arteriolar + venous', w * 60),
+      custom: w == null ? '—' : '1 mL/hr = 10 mcg/kg/min',
+      src: 'Watch for cyanide toxicity at >2 mcg/kg/min × 24h or in renal/hepatic failure.' });
+    drug({ name: 'Nitroglycerin', dose: '1–10 mcg/kg/min', sub: rate('Venous > arterial', w * 60),
+      custom: w == null ? '—' : '1 mL/hr = 10 mcg/kg/min' });
+
+    sectionHead('Specialty');
+    drug({ name: 'Prostaglandin E1', dose: '0.05–0.1 mcg/kg/min', sub: 'Maintain PDA — ductal-dependent CHD',
+      custom: 'Apnea risk — have intubation ready' });
+    drug({ name: 'Remifentanil', dose: '0.05–0.5 mcg/kg/min', sub: 'Analgesia infusion',
+      custom: w == null ? '—' : '1 mL/hr = 0.1 mcg/kg/min @ ×0.6 mix' });
+  }
+  registerStep('cat-vasoactive', 'Vasoactive infusions', renderVasoactive, ['Home']);
+
+  function renderAbx() {
+    titleWithFav('Antibiotics', 'Surgical prophylaxis & treatment. Doses are starting doses — adjust for renal function.', 'cat-abx');
+    drug({ name: 'Cefazolin (Kefzol/Ancef)', dose: '25 mg/kg IV', sub: 'Surgical prophylaxis — standard', perKg: 25, cap: 2000,
+      src: 'Re-dose q4h intraop. Adult dose 2 g (3 g if ≥120 kg). Range 8.3–25 mg/kg q6–8h, max 6 g/d.' });
+    drug({ name: 'Cefoxitin (Mefoxin)', dose: '30–40 mg/kg IV', sub: 'Colorectal, GU surgery', perKgLow: 30, perKgHigh: 40, cap: 2000,
+      src: 'q6h × 24h post-op.' });
+    drug({ name: 'Ceftriaxone (Rocephin)', dose: '50 mg/kg IV', sub: 'Daily dosing', perKg: 50, cap: 2000,
+      src: 'q12–24h. 50–75 mg/kg/dose range. Max 4 g/d.' });
+    drug({ name: 'Vancomycin', dose: '15 mg/kg IV', sub: 'MRSA risk, severe PCN allergy', perKg: 15, cap: 1500,
+      src: 'q6–8h. Slow infusion (over 60 min) to avoid red-man. 10–20 mg/kg range. Max 1 g/dose for prophylaxis (some institutions 1.5 g).' });
+    drug({ name: 'Clindamycin (Cleocin)', dose: '10 mg/kg IV', sub: 'PCN allergy, anaerobic coverage', perKg: 10, cap: 900,
+      src: 'q6h. 6.25–10 mg/kg/dose range. Max 4.8 g/d. C. diff risk.' });
+    drug({ name: 'Gentamicin', dose: '2.5 mg/kg IV', sub: 'Gram-negative coverage', perKg: 2.5, cap: 240,
+      src: 'q8h conventional, or 5–7 mg/kg q24h extended-interval. Nephro/ototoxic.' });
+    drug({ name: 'Ampicillin', dose: '50 mg/kg IV', sub: 'Listeria, enterococcus, group B strep', perKg: 50, cap: 3000,
+      src: 'q4–6h. 25–50 mg/kg range. Max 2–3 g/d.' });
+    drug({ name: 'Metronidazole (Flagyl)', dose: '10 mg/kg IV', sub: 'Anaerobic coverage', perKg: 10, cap: 500 });
+    drug({ name: 'Piperacillin/tazobactam (Zosyn)', dose: '100 mg/kg IV', sub: 'Broad-spectrum, includes pseudomonas', perKg: 100, cap: 4500,
+      src: 'Pip-component. q6–8h. Max single dose 4.5 g.' });
+  }
+  registerStep('cat-abx', 'Antibiotics', renderAbx, ['Home']);
+
+  function renderLA() {
+    titleWithFav('Local anesthetics', 'Max doses + caudal volumes (Armitage).', 'cat-la');
+    sectionHead('Maximum doses (mg/kg)');
+    const w = calcWeight();
+    function laRow(name, plainMax, epiMax, pctText, conc) {
+      const plainTot = w == null ? '—' : roundMg(w * plainMax) + ' mg';
+      const epiTot = w == null ? '—' : roundMg(w * epiMax) + ' mg';
+      const plainVol = w == null ? '—' : roundMl(w * plainMax / conc) + ' mL';
+      const epiVol = w == null ? '—' : roundMl(w * epiMax / conc) + ' mL';
+      const row = el('div', 'drug');
+      const left = el('div', 'd-left');
+      left.appendChild(el('div', 'd-name', name));
+      left.appendChild(el('div', 'd-sub', pctText + ' · plain ' + plainMax + ' mg/kg · w/epi ' + epiMax + ' mg/kg'));
+      const right = el('div', 'd-right');
+      right.innerHTML = '<div class="d-mg">' + plainTot + '<span class="d-mg-unit"> plain</span></div>' +
+                        '<div class="d-ml">' + plainVol + ' @ ' + pctText.split('=')[1].trim() + '</div>' +
+                        '<div style="margin-top:6px"><div class="d-mg">' + epiTot + '<span class="d-mg-unit"> w/epi</span></div>' +
+                        '<div class="d-ml">' + epiVol + '</div></div>';
+      row.appendChild(left); row.appendChild(right);
+      stage.appendChild(row);
+    }
+    laRow('Lidocaine', 5, 7, '1% = 10 mg/mL', 10);
+    laRow('Bupivacaine', 2.5, 3, '0.25% = 2.5 mg/mL', 2.5);
+    laRow('Ropivacaine', 2.5, 3, '0.2% = 2 mg/mL', 2);
+    laRow('Levobupivacaine', 2.5, 3, '0.5% = 5 mg/mL', 5);
+    note('Always aspirate before injection. Use lowest effective dose. Conversion: <strong>concentration (%) × 10 = mg/mL</strong>. Have Intralipid 20% available for LAST.', 'warn');
+
+    sectionHead('Caudal block — volumes (Armitage)');
+    const headers = ['Block height', 'mL/kg', 'mL for patient', '0.2% ropi mg', '0.25% bupi mg'];
+    const tbl = el('table', 'ref');
+    const thead = el('thead');
+    const hr = el('tr');
+    headers.forEach(h => { const th = el('th'); th.textContent = h; hr.appendChild(th); });
+    thead.appendChild(hr); tbl.appendChild(thead);
+    const tbody = el('tbody');
+    [['Sacral', 0.5, 'Perineal, lower limb'],
+     ['Low thoracic', 1.0, 'Lower abdominal, inguinal hernia'],
+     ['Mid thoracic', 1.25, 'Upper abdominal — verify dose']].forEach(r => {
+      const tr = el('tr');
+      const vol = w == null ? '—' : roundMl(w * r[1]);
+      const ropiMg = w == null ? '—' : roundMg(w * r[1] * 2);
+      const bupiMg = w == null ? '—' : roundMg(w * r[1] * 2.5);
+      [r[0], r[1] + ' mL/kg', vol + ' mL', ropiMg + ' mg', bupiMg + ' mg'].forEach(c => {
+        const td = el('td'); td.textContent = c; tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody);
+    stage.appendChild(tbl);
+    note('<strong>Max single-shot dose ceilings:</strong> ropivacaine 3 mg/kg, bupivacaine 2.5 mg/kg plain. At 1.25 mL/kg with 0.25% bupi the dose is 3.125 mg/kg — exceeds plain max. Use ropi or reduce volume.', 'warn');
+  }
+  registerStep('cat-la', 'Local anesthetics', renderLA, ['Home']);
+
+
+  // ============ EMERGENCY SCENARIO PAGES ============
+
+  function renderPALS() {
+    titleWithFav('Code blue / PALS', 'Patient-specific weight-based PALS doses.', 'em-pals');
+    note('<strong>Cycle:</strong> Compressions, epi q3–5min, rhythm check q2min, shock if shockable. High-quality CPR is the #1 intervention.', 'danger');
+
+    sectionHead('Vasopressors / inotropes');
+    drug({ name: 'Epi — arrest IV/IO', dose: '0.01 mg/kg (1:10,000)', sub: 'Repeat q3–5 min', perKg: 0.01, cap: 1, conc: 'epi_1_10k' });
+    drug({ name: 'Epi — ETT', dose: '0.1 mg/kg (1:1000)', sub: 'No IV/IO access', perKg: 0.1, cap: 2.5, conc: 'epi_1_1k' });
+    drug({ name: 'Atropine', dose: '0.02 mg/kg IV', sub: 'Brady w/ poor perfusion; no min', perKg: 0.02, cap: 0.5, conc: 'atropine' });
+
+    sectionHead('Antiarrhythmics');
+    drug({ name: 'Amiodarone', dose: '5 mg/kg IV/IO', sub: 'Refractory VF/pVT — may repeat ×2', perKg: 5, cap: 300,
+      src: 'Cumulative max 15 mg/kg.' });
+    drug({ name: 'Lidocaine', dose: '1 mg/kg IV/IO', sub: 'Alternative to amiodarone', perKg: 1, cap: 100, conc: 'lidocaine_iv',
+      src: 'Infusion 20–50 mcg/kg/min after bolus.' });
+    drug({ name: 'Adenosine — 1st', dose: '0.1 mg/kg IV', sub: 'SVT — rapid push + flush', perKg: 0.1, cap: 6 });
+    drug({ name: 'Adenosine — 2nd', dose: '0.2 mg/kg IV', sub: 'If 1st ineffective', perKg: 0.2, cap: 12 });
+    drug({ name: 'Magnesium sulfate', dose: '25–50 mg/kg IV', sub: 'Torsades, hypoMg', perKgLow: 25, perKgHigh: 50, cap: 2000, conc: 'magnesium_sulfate' });
+
+    sectionHead('Volume / metabolic');
+    drug({ name: 'Calcium chloride', dose: '20 mg/kg IV', sub: 'HyperK, hypoCa, CCB OD', perKg: 20, cap: 2000, conc: 'CaCl' });
+    drug({ name: 'Calcium gluconate', dose: '30–60 mg/kg IV', sub: 'Peripheral OK', perKgLow: 30, perKgHigh: 60, cap: 3000, conc: 'CaGluc' });
+    drug({ name: 'Sodium bicarbonate', dose: '1 mEq/kg IV', sub: 'Severe acidosis, hyperK, TCA OD — NOT routine in arrest', perKg: 1, cap: 50, unit: 'mEq' });
+    drug({ name: 'D10W', dose: '5 mL/kg', sub: 'Hypoglycemia (glucose <60)', custom: function() { const w = calcWeight(); return w == null ? '—' : Math.round(w * 5) + ' mL'; }(),
+      src: 'Or D25 2 mL/kg = 0.5 g/kg. Neonates use D10 only.' });
+    drug({ name: 'Naloxone', dose: '0.1 mg/kg IV', sub: 'Opioid OD with arrest', perKg: 0.1, cap: 2, conc: 'naloxone' });
+    drug({ name: 'Fluid bolus', dose: '20 mL/kg', sub: 'Shock — repeat; 10 mL/kg if cardiogenic/septic concern', custom: function() { const w = calcWeight(); return w == null ? '—' : Math.round(w * 20) + ' mL'; }() });
+
+    sectionHead('Electricity');
+    drug({ name: 'Defibrillation', dose: '2 → 4 → ≥4 J/kg', sub: 'VF / pulseless VT', custom: function() { const w = calcWeight(); return w == null ? '—' : Math.round(w * 2) + ' → ' + Math.round(w * 4) + ' → ' + Math.round(w * 4) + ' J'; }(),
+      src: 'Max 10 J/kg or adult dose (200 J biphasic).' });
+    drug({ name: 'Cardioversion', dose: '0.5–1 → 2 J/kg', sub: 'Unstable SVT/VT with pulse — synchronized', custom: function() { const w = calcWeight(); return w == null ? '—' : Math.round(w * 0.5) + '–' + Math.round(w * 1) + ' → ' + Math.round(w * 2) + ' J'; }(),
+      src: 'Sedate if possible.' });
+  }
+  registerStep('em-pals', 'Code blue / PALS', renderPALS, ['Home', 'Scenarios']);
+
+  function renderAnaphylaxis() {
+    titleWithFav('Anaphylaxis', 'Recognize, give epi, fluid, adjuncts. Most common intraop triggers: NMBs, latex, antibiotics, chlorhexidine.', 'em-anaphylaxis');
+    note('<strong>Recognize early:</strong> sudden hypotension, ↑PAP, ↓EtCO2, bronchospasm, rash. <strong>Give epi early — it\'s the only thing that fixes anaphylaxis.</strong>', 'danger');
+
+    sectionHead('First-line');
+    drug({ name: 'Epi — IM 1:1000', dose: '0.01 mg/kg IM', sub: 'Anterolateral thigh, repeat q5–15 min', perKg: 0.01, cap: 0.5, conc: 'epi_1_1k',
+      src: 'Use if no IV. Auto-injector approximation: <15 kg use 0.15 mg (peds), ≥15 kg can use 0.3 mg (adult).' });
+    drug({ name: 'Epi — IV 1:10,000', dose: '1–10 mcg/kg IV bolus', sub: 'Titrate to BP', perKgLow: 1, perKgHigh: 10, unit: 'mcg', conc: 'epi_1_10k',
+      src: 'Start with 1 mcg/kg if mild. Escalate quickly to 10 mcg/kg if hypotensive/arrest. Have an epi infusion ready (0.05–1 mcg/kg/min).' });
+    drug({ name: 'Fluid bolus', dose: '20 mL/kg', sub: 'May need 60+ mL/kg total', custom: function() { const w = calcWeight(); return w == null ? '—' : Math.round(w * 20) + ' mL'; }(),
+      src: 'Massive plasma extravasation — large volume needed.' });
+
+    sectionHead('Adjuncts (do not delay epi for these)');
+    drug({ name: 'Hydrocortisone', dose: '2 mg/kg IV', sub: 'Slow onset — for biphasic prevention', perKg: 2, cap: 100, conc: 'hydrocortisone' });
+    drug({ name: 'Diphenhydramine', dose: '1 mg/kg IV', sub: 'H1 — for urticaria', perKg: 1, cap: 50, conc: 'diphenhydramine' });
+    drug({ name: 'Ranitidine/famotidine', dose: '0.25 mg/kg IV', sub: 'H2 blocker', perKg: 0.25 });
+    drug({ name: 'Albuterol', dose: '4–8 puffs via spacer/ETT', sub: 'Bronchospasm', custom: '4–8 puffs' });
+    drug({ name: 'Methylene blue', dose: '1–2 mg/kg IV', sub: 'Refractory vasoplegia', perKgLow: 1, perKgHigh: 2, cap: 100,
+      src: 'Reserve for cases unresponsive to epi + fluid. Causes blue urine, transient SpO2 drop.' });
+
+    note('Send tryptase at 1 hr (and ideally 4–6 hr) post-event. Refer for allergy testing 4–6 weeks later. Document trigger if known.', 'info');
+  }
+  registerStep('em-anaphylaxis', 'Anaphylaxis', renderAnaphylaxis, ['Home', 'Scenarios']);
+
+  function renderLaryngospasm() {
+    titleWithFav('Laryngospasm', 'Common in mask induction. Recognize early — desat is a late sign.', 'em-laryngospasm');
+    note('<strong>Sequence:</strong> (1) Remove stimulus. (2) Jaw thrust + Larson maneuver. (3) 100% O2 + CPAP. (4) Deepen with propofol. (5) Succ if persistent.', 'danger');
+
+    sectionHead('Step 4 — Deepen');
+    drug({ name: 'Propofol', dose: '0.5–1 mg/kg IV', sub: 'Often breaks the spasm before paralysis needed', perKgLow: 0.5, perKgHigh: 1, conc: 'propofol' });
+
+    sectionHead('Step 5 — Paralyze');
+    drug({ name: 'Succinylcholine IV', dose: '0.5–1 mg/kg', sub: 'Intermediate dose often sufficient', perKgLow: 0.5, perKgHigh: 1, cap: 150, conc: 'succinylcholine',
+      src: 'Some institutions use lower dose (0.1 mg/kg) for laryngospasm. Have atropine ready for brady.' });
+    drug({ name: 'Succinylcholine IM', dose: '4 mg/kg', sub: 'No IV — anterolateral thigh or tongue', perKg: 4, cap: 150, conc: 'succinylcholine',
+      src: 'Onset 2–3 min. Give atropine 0.02 mg/kg with it (or separately) — vagolytic.' });
+    drug({ name: 'Atropine', dose: '0.02 mg/kg IV', sub: 'Prevent succ-induced bradycardia', perKg: 0.02, cap: 0.5, conc: 'atropine' });
+
+    note('Negative-pressure pulmonary edema (NPPE) can develop after a breath against closed cords. Watch SpO2, airway pressures, and for pink frothy sputum during emergence/recovery.', 'warn');
+  }
+  registerStep('em-laryngospasm', 'Laryngospasm', renderLaryngospasm, ['Home', 'Scenarios']);
+
+  function renderMH() {
+    titleWithFav('Malignant hyperthermia', 'Triggered by volatiles + succ. Earliest signs: unexplained ↑EtCO2, masseter spasm, tachycardia. Late: hyperthermia, rigidity, dark urine, acidosis.', 'em-mh');
+    note('<strong>Call MHAUS hotline: 1-800-644-9737</strong> · Stop triggers, switch to TIVA, hyperventilate 100% O2, cool aggressively, treat hyperK + acidosis.', 'danger');
+
+    sectionHead('Dantrolene');
+    drug({ name: 'Dantrolene', dose: '2.5 mg/kg IV', sub: 'Repeat q5 min — total can exceed 10 mg/kg', perKg: 2.5,
+      src: 'Classic dantrolene: 20 mg vials, reconstitute each with 60 mL preservative-free sterile water. 30 kg child needs 75 mg = ~4 vials = 240 mL water. Slow.' });
+    drug({ name: 'Ryanodex', dose: '2.5 mg/kg IV', sub: 'Faster prep (250 mg/vial w/ 5 mL water)', perKg: 2.5,
+      src: 'Strongly preferred if available — orders of magnitude faster reconstitution.' });
+
+    sectionHead('Cooling');
+    note('Cold IV fluids (4°C NS); ice packs to axillae/groin/neck; cold gastric/bladder lavage; remove drapes. Stop cooling at 38°C to avoid overshoot.', 'info');
+
+    sectionHead('Hyperkalemia (treat aggressively)');
+    drug({ name: 'Calcium chloride', dose: '10–20 mg/kg IV', sub: 'Membrane stabilization', perKgLow: 10, perKgHigh: 20, cap: 2000, conc: 'CaCl' });
+    drug({ name: 'Insulin + glucose', dose: '0.1 U/kg insulin + 0.5 g/kg dextrose', sub: 'Shift K+ into cells', custom: function() { const w = calcWeight(); return w == null ? '—' : roundMg(w * 0.1) + ' U + ' + roundMg(w * 0.5) + ' g'; }() });
+    drug({ name: 'Sodium bicarbonate', dose: '1–2 mEq/kg IV', sub: 'Acidosis + K+ shift', perKgLow: 1, perKgHigh: 2, cap: 50, unit: 'mEq' });
+    drug({ name: 'Albuterol', dose: '4–8 puffs', sub: 'β2 K+ shift', custom: '4–8 puffs' });
+
+    sectionHead('Other');
+    drug({ name: 'Furosemide', dose: '0.5–1 mg/kg IV', sub: 'Promote myoglobin clearance', perKgLow: 0.5, perKgHigh: 1, cap: 40, conc: 'furosemide' });
+    drug({ name: 'Mannitol', dose: '0.5 g/kg IV', sub: 'Osmotic diuresis', perKg: 0.5 });
+    note('Send labs: ABG, K+, lactate, CK, myoglobin, coags. Insert arterial line + Foley. Transfer to ICU for at least 24h post-event (recrudescence risk).', 'info');
+  }
+  registerStep('em-mh', 'Malignant hyperthermia', renderMH, ['Home', 'Scenarios']);
+
+  function renderLAST() {
+    titleWithFav('LAST — lipid rescue', 'Local anesthetic systemic toxicity. Prodrome: peri-oral numbness, tinnitus, metallic taste, agitation → seizures → arrhythmias → arrest.', 'em-last');
+    note('<strong>Stop LA injection immediately.</strong> Call for help. 100% O2, ventilate. Standard PALS for arrest BUT: use small epi doses (≤1 mcg/kg), AVOID vasopressin/Ca/β-blockers/other LAs. Give Intralipid.', 'danger');
+
+    sectionHead('Intralipid 20% protocol (ASRA 2020)');
+    const w = calcWeight();
+    drug({ name: 'Initial bolus', dose: '1.5 mL/kg over 1 min', sub: 'IV, lean body weight', custom: w == null ? '—' : roundMl(w * 1.5) + ' mL' });
+    drug({ name: 'Infusion', dose: '0.25 mL/kg/min', sub: 'Continuous — continue 10 min after stability', custom: w == null ? '—' : roundMl(w * 0.25) + ' mL/min' });
+    drug({ name: 'Repeat bolus', dose: '1.5 mL/kg q5min × 2 max', sub: 'If persistent CV collapse', custom: w == null ? '—' : roundMl(w * 1.5) + ' mL' });
+    drug({ name: 'Double infusion', dose: '0.5 mL/kg/min', sub: 'If refractory hypotension', custom: w == null ? '—' : roundMl(w * 0.5) + ' mL/min' });
+    drug({ name: 'Maximum dose', dose: '10–12 mL/kg first 30 min', sub: 'Upper safety ceiling', custom: w == null ? '—' : roundMl(w * 10) + '–' + roundMl(w * 12) + ' mL' });
+
+    sectionHead('Seizure control (often resolves with Intralipid)');
+    drug({ name: 'Midazolam', dose: '0.1 mg/kg IV', sub: 'First-line', perKg: 0.1, cap: 10, conc: 'midazolam_iv' });
+    note('ASRA Checklist: <a href="https://asra.com" target="_blank">asra.com</a>. Source: Neal et al. Reg Anesth Pain Med 2020.', 'info');
+  }
+  registerStep('em-last', 'LAST', renderLAST, ['Home', 'Scenarios']);
+
+  function renderHyperK() {
+    titleWithFav('Hyperkalemia', 'Membrane stabilization → K+ shift → K+ removal. Common intraop causes: succ in denervated muscle, massive transfusion, crush, tumor lysis.', 'em-hyperk');
+    note('<strong>Sequence:</strong> Stabilize membrane (Ca) → shift K+ (insulin/D, β2, bicarb) → remove K+ (lasix, kayex, dialysis).', 'warn');
+
+    sectionHead('Membrane stabilization');
+    drug({ name: 'Calcium chloride', dose: '5–10 mg/kg IV', sub: 'Central preferred', perKgLow: 5, perKgHigh: 10, cap: 1000, conc: 'CaCl',
+      src: 'Repeat until ECG normalizes.' });
+    drug({ name: 'Calcium gluconate', dose: '15–30 mg/kg IV', sub: 'Peripheral OK', perKgLow: 15, perKgHigh: 30, cap: 3000, conc: 'CaGluc' });
+
+    sectionHead('Shift K+ into cells');
+    drug({ name: 'Insulin + dextrose', dose: '0.1 U/kg insulin + 0.5 g/kg dextrose', sub: 'Over 30 min — monitor late hypoglycemia', custom: function() { const w = calcWeight(); return w == null ? '—' : roundMg(w * 0.1) + ' U + ' + roundMg(w * 0.5) + ' g'; }() });
+    drug({ name: 'Albuterol', dose: '4–8 puffs (or 2.5–5 mg neb)', sub: 'β2 shift — onset 30 min', custom: '4–8 puffs' });
+    drug({ name: 'Sodium bicarbonate', dose: '1 mEq/kg IV', sub: 'Only if acidosis present', perKg: 1, cap: 50, unit: 'mEq' });
+
+    sectionHead('Remove K+');
+    drug({ name: 'Furosemide', dose: '1 mg/kg IV', sub: 'If renal function intact', perKg: 1, cap: 40, conc: 'furosemide' });
+    drug({ name: 'Kayexalate (SPS)', dose: '1 g/kg q4h PO/PR', sub: 'Slow onset — not for crisis', perKg: 1, cap: 40, unit: 'g' });
+    note('Dialysis for refractory or severe hyperK in renal failure. Continuous monitoring + frequent labs.', 'info');
+  }
+  registerStep('em-hyperk', 'Hyperkalemia', renderHyperK, ['Home', 'Scenarios']);
+
+  function renderStatus() {
+    titleWithFav('Status epilepticus', 'Generalized seizure >5 min or recurrent without recovery. Check glucose, Na+, reversible causes.', 'em-status');
+    note('<strong>Tiered approach:</strong> 1st line benzos (5–20 min) → 2nd line loading (20–40 min) → 3rd line anesthetic + neuro consult (>40 min).', 'warn');
+
+    sectionHead('First-line — benzodiazepines');
+    drug({ name: 'Midazolam IV', dose: '0.1–0.2 mg/kg', sub: 'May repeat ×1, max 10 mg/dose', perKgLow: 0.1, perKgHigh: 0.2, cap: 10, conc: 'midazolam_iv' });
+    drug({ name: 'Midazolam IM/IN', dose: '0.2 mg/kg', sub: 'When no IV — IM thigh or IN', perKg: 0.2, cap: 10, conc: 'midazolam_iv' });
+    drug({ name: 'Lorazepam', dose: '0.1 mg/kg IV slow', sub: 'Longer duration than midaz', perKg: 0.1, cap: 4 });
+    drug({ name: 'Diazepam IV', dose: '0.1–0.3 mg/kg IV slow', sub: 'Or PR (Diastat) 0.5 mg/kg if no IV', perKgLow: 0.1, perKgHigh: 0.3, cap: 10 });
+
+    sectionHead('Second-line — anticonvulsant loading');
+    drug({ name: 'Levetiracetam', dose: '60 mg/kg IV', sub: 'Increasingly 1st choice 2nd-line', perKg: 60, cap: 4500,
+      src: 'Over 5–15 min. Few side effects.' });
+    drug({ name: 'Fosphenytoin', dose: '15–20 mg/kg IV (PE)', sub: 'Over 20–30 min — watch BP, arrhythmia', perKgLow: 15, perKgHigh: 20, cap: 1500, unit: 'mg PE' });
+    drug({ name: 'Phenobarbital', dose: '10–20 mg/kg IV load', sub: 'Apnea risk — goes deep', perKgLow: 10, perKgHigh: 20, cap: 1000 });
+    drug({ name: 'Valproic acid', dose: '20–40 mg/kg IV', sub: 'Avoid in suspected mitochondrial disease', perKgLow: 20, perKgHigh: 40, cap: 3000 });
+  }
+  registerStep('em-status', 'Status epilepticus', renderStatus, ['Home', 'Scenarios']);
+
+
+  // ============ EQUIPMENT PAGES ============
+
+  // ETT: Cole (uncuffed) and Motoyama (cuffed). Need age.
+  function renderETT() {
+    titleWithFav('Endotracheal tube', 'Sizes from Cole/Motoyama. Depths are starting estimates — confirm with breath sounds, capnography, CXR.', 'eq-ett');
+    const m = ageMonths();
+    const w = calcWeight();
+    if (m == null) {
+      note('Enter age to get ETT size + depth. Without age these can\'t be computed reliably.', 'warn');
+    }
+
+    function sizeRow(label, cuffSize, uncuffSize, sub) {
+      const row = el('div', 'drug');
+      const left = el('div', 'd-left');
+      left.appendChild(el('div', 'd-name', label));
+      if (sub) left.appendChild(el('div', 'd-sub', sub));
+      const right = el('div', 'd-right');
+      right.innerHTML = '<div class="d-mg">' + (cuffSize || '—') + ' / ' + (uncuffSize || '—') + '<span class="d-mg-unit"> mm</span></div><div class="d-ml">cuf / uncuf</div>';
+      row.appendChild(left); row.appendChild(right);
+      stage.appendChild(row);
+    }
+    function depthRow(label, val, unit, sub) {
+      const row = el('div', 'drug');
+      const left = el('div', 'd-left');
+      left.appendChild(el('div', 'd-name', label));
+      if (sub) left.appendChild(el('div', 'd-sub', sub));
+      const right = el('div', 'd-right');
+      right.innerHTML = '<div class="d-mg">' + (val == null ? '—' : val) + '<span class="d-mg-unit"> ' + unit + '</span></div>';
+      row.appendChild(left); row.appendChild(right);
+      stage.appendChild(row);
+    }
+
+    sectionHead('Sizes (mm ID)');
+    let oCuf=null, oUn=null, nCuf=null, nUn=null;
+    if (m != null) {
+      if (m < 12) { oCuf=3.0; oUn=3.5; nCuf=2.5; nUn=3.5; }
+      else if (m < 24) { oCuf=3.5; oUn=4.0; nCuf=3.0; nUn=4.0; }
+      else {
+        const y = m / 12;
+        oCuf = Math.round((y/4 + 3.5)*2)/2;
+        oUn = Math.round((y/4 + 4)*2)/2;
+        nCuf = Math.round((y/4 + 3)*2)/2;
+        nUn = Math.round((y/4 + 4)*2)/2;
+      }
+    }
+    sizeRow('Oral ETT', oCuf, oUn, m == null ? 'Need age' : (m < 24 ? 'Infant standard sizes' : 'Cole formula: age/4 + 3.5 cuf / +4 uncuf'));
+    sizeRow('Nasal ETT', nCuf, nUn, m == null ? 'Need age' : (m < 24 ? 'Infant standard sizes' : 'Motoyama / Khine'));
+
+    sectionHead('Depth');
+    let depthOralMin=null, depthOralMax=null, depthNose=null, lipsInfant=6;
+    if (m != null && w != null) {
+      if (m < 12) {
+        depthOralMin = w + 6;
+        depthOralMax = w + 7;
+        depthNose = w + 8;
+      } else if (m < 24) {
+        depthOralMin = w + 7;
+        depthOralMax = w + 8;
+        depthNose = w + 9;
+      } else {
+        const y = m / 12;
+        depthOralMin = 10 + y/2;
+        depthOralMax = 12 + y/2;
+        depthNose = 15 + y/2;
+      }
+    }
+    depthRow('ET depth at teeth — min', depthOralMin && Math.round(depthOralMin*10)/10, 'cm', 'Oral intubation');
+    depthRow('ET depth at teeth — max', depthOralMax && Math.round(depthOralMax*10)/10, 'cm', 'Oral intubation');
+    depthRow('ET depth at nose', depthNose && Math.round(depthNose*10)/10, 'cm', 'Nasal intubation');
+    if (m != null && m < 1) {
+      depthRow('Newborn ETT length at lips', 6, 'cm', '~6 cm typical for neonate');
+    }
+    note('Always confirm with breath sounds, capnography, then CXR. The formulas miss in ~10% — bigger/smaller airways than predicted by age.', 'info');
+  }
+  registerStep('eq-ett', 'Endotracheal tube', renderETT, ['Home', 'Equipment']);
+
+  function renderAirway() {
+    titleWithFav('Airway adjuncts', 'OPA, mask, LMA, blade, reservoir bag — auto-picked from weight/age.', 'eq-airway');
+    const w = calcWeight();
+    const m = ageMonths();
+
+    function adj(label, val, sub) {
+      const row = el('div', 'drug');
+      const left = el('div', 'd-left');
+      left.appendChild(el('div', 'd-name', label));
+      if (sub) left.appendChild(el('div', 'd-sub', sub));
+      const right = el('div', 'd-right');
+      right.innerHTML = '<div class="d-mg" style="font-size:15px">' + (val || '—') + '</div>';
+      row.appendChild(left); row.appendChild(right);
+      stage.appendChild(row);
+    }
+
+    sectionHead('Supraglottic / airway');
+    let lmaSize = null;
+    if (w != null) {
+      if (w < 5) lmaSize = '1 (≤4 mL cuff)';
+      else if (w < 10) lmaSize = '1.5 (≤7 mL)';
+      else if (w < 20) lmaSize = '2 (≤10 mL)';
+      else if (w < 30) lmaSize = '2.5 (≤14 mL)';
+      else if (w < 50) lmaSize = '3 (≤20 mL)';
+      else if (w < 70) lmaSize = '4 (≤30 mL)';
+      else lmaSize = '5 (≤40 mL)';
+    }
+    adj('LMA (Ambu Aura)', lmaSize, w == null ? 'Need weight' : 'For ' + roundMg(w) + ' kg');
+
+    let opaSize = null;
+    if (m != null) {
+      if (m < 1) opaSize = '40 mm (clear) — neonatal';
+      else if (m < 6) opaSize = '50 mm (blue) — Rusch size 0';
+      else if (m < 24) opaSize = '60 mm (black) — Guedel';
+      else if (m < 72) opaSize = '70 mm (white) — Guedel';
+      else if (m < 144) opaSize = '80 mm (green) — Guedel';
+      else if (m < 192) opaSize = '90 mm (yellow) — Guedel';
+      else opaSize = '100 mm (red) — Guedel adult';
+    }
+    adj('Oral airway (OPA)', opaSize, m == null ? 'Need age' : null);
+
+    let maskSize = null;
+    if (w != null) {
+      if (w < 5) maskSize = 'Size 0 — Ambu King / Smiths (white hook)';
+      else if (w < 10) maskSize = 'Size 1 — neonate to small infant';
+      else if (w < 20) maskSize = 'Size 2 — orange dot (Ambu King)';
+      else if (w < 40) maskSize = 'Size 3 — purple dot/hook';
+      else if (w < 60) maskSize = 'Size 4 — green dot/hook';
+      else maskSize = 'Size 5 — medium adult (ICU Medical)';
+    }
+    adj('Face mask', maskSize, w == null ? 'Need weight' : null);
+
+    let bagSize = null;
+    if (w != null) {
+      if (w < 7) bagSize = '0.5 L';
+      else if (w < 25) bagSize = '1 L';
+      else bagSize = '2 L';
+    }
+    adj('Reservoir bag', bagSize, w == null ? 'Need weight' : null);
+
+    sectionHead('Laryngoscope blade');
+    let blade = null;
+    if (m != null && w != null) {
+      if (m < 1) blade = 'Miller 0';
+      else if (m < 24) blade = 'Miller 1';
+      else if (m < 36) blade = 'Wis-Hipple 1.5 (2–5 yr) or Miller 1';
+      else if (m < 72) blade = 'Mac 2 or Miller 2';
+      else blade = w < 25 ? 'Philips 1 or Mac 2' : 'Philips 2 or Mac 3';
+    }
+    adj('Blade', blade, (m == null || w == null) ? 'Need age + weight' : null);
+  }
+  registerStep('eq-airway', 'Airway adjuncts', renderAirway, ['Home', 'Equipment']);
+
+  function renderBPCuff() {
+    titleWithFav('BP cuff', 'Sized by upper arm circumference. Inventory has a gap between sizes 8 and 10.', 'eq-bpcuff');
+    const w = calcWeight();
+    function row(label, val, sub) {
+      const r = el('div', 'drug');
+      const left = el('div', 'd-left');
+      left.appendChild(el('div', 'd-name', label));
+      if (sub) left.appendChild(el('div', 'd-sub', sub));
+      const right = el('div', 'd-right');
+      right.innerHTML = '<div class="d-mg" style="font-size:15px">' + (val || '—') + '</div>';
+      r.appendChild(left); r.appendChild(right);
+      stage.appendChild(r);
+    }
+    let cuff = null;
+    if (w != null) {
+      if (w < 5) cuff = 'Size 1 (Philips)';
+      else if (w < 10) cuff = 'Size 2 (Philips)';
+      else if (w < 15) cuff = 'Size 3 (Philips)';
+      else if (w < 25) cuff = 'Size 6 (Welch Allyn)';
+      else if (w < 35) cuff = 'Size 7 (Welch Allyn)';
+      else if (w < 45) cuff = 'Size 8 (Welch Allyn) — or 10 if loose';
+      else cuff = 'Size 10 (Welch Allyn)';
+    }
+    row('Cuff size', cuff, w == null ? 'Need weight' : 'Upper arm. For thigh/calf: go 1–2 sizes larger.');
+    note('<strong>⚠ Inventory gap:</strong> between size 8 (max 16 cm) and size 10 (min 22 cm) there\'s no cuff for limbs 16–22 cm — most school-age kids (~35–55 kg). Default: WA size 10, accept loose fit may read low; verify with alternate site.', 'warn');
+  }
+  registerStep('eq-bpcuff', 'BP cuff', renderBPCuff, ['Home', 'Equipment']);
+
+  function renderVent() {
+    titleWithFav('Ventilation', 'Tidal volumes.', 'eq-vent');
+    const w = calcWeight();
+    function row(label, val, unit, sub) {
+      const r = el('div', 'drug');
+      const left = el('div', 'd-left');
+      left.appendChild(el('div', 'd-name', label));
+      if (sub) left.appendChild(el('div', 'd-sub', sub));
+      const right = el('div', 'd-right');
+      right.innerHTML = '<div class="d-mg">' + (val == null ? '—' : Math.round(val)) + '<span class="d-mg-unit"> ' + unit + '</span></div>';
+      r.appendChild(left); r.appendChild(right);
+      stage.appendChild(r);
+    }
+    row('Tidal volume — resting', w == null ? null : w * 6, 'mL', '6 mL/kg');
+    row('Tidal volume — standard ventilator', w == null ? null : w * 10, 'mL', '10 mL/kg');
+    row('Minute ventilation estimate', w == null ? null : w * 100, 'mL/min', '~100 mL/kg/min (varies with age)');
+    note('Start RR by age: neonates 30–40, infants 24–30, toddlers 20–24, school-age 16–20, adolescents 12–16.', 'info');
+  }
+  registerStep('eq-vent', 'Ventilation', renderVent, ['Home', 'Equipment']);
+
+  function renderFluids() {
+    titleWithFav('Fluids & blood', 'Maintenance, surgical, EBV, transfusion.', 'eq-fluids');
+    const w = calcWeight();
+    const m = ageMonths();
+
+    sectionHead('Maintenance (Holliday-Segar)');
+    let maint = null;
+    if (w != null) {
+      if (w <= 10) maint = w * 4;
+      else if (w <= 20) maint = 40 + (w - 10) * 2;
+      else maint = w + 40;
+    }
+    drug({ name: 'Maintenance', dose: '4-2-1 rule', sub: '4 mL/kg/hr first 10 kg, 2 next 10, 1 thereafter', custom: maint == null ? '—' : Math.round(maint) + ' mL/hr' });
+
+    sectionHead('Surgical requirements');
+    drug({ name: 'Minor surgery', dose: '3 mL/kg/hr', custom: w == null ? '—' : Math.round(w * 3) + ' mL/hr' });
+    drug({ name: 'Moderate surgery', dose: '5 mL/kg/hr', custom: w == null ? '—' : Math.round(w * 5) + ' mL/hr' });
+    drug({ name: 'Major surgery', dose: '7 mL/kg/hr', custom: w == null ? '—' : Math.round(w * 7) + ' mL/hr' });
+
+    sectionHead('Resuscitation boluses');
+    drug({ name: 'Bolus — 10 mL/kg', sub: 'Cardiogenic/septic concern', dose: '10 mL/kg', custom: w == null ? '—' : Math.round(w * 10) + ' mL' });
+    drug({ name: 'Bolus — 20 mL/kg', sub: 'Standard resuscitation', dose: '20 mL/kg', custom: w == null ? '—' : Math.round(w * 20) + ' mL' });
+
+    sectionHead('Estimated blood volume');
+    let ebvPerKg = null, ebvLabel = '';
+    if (m != null) {
+      if (m < 1) { ebvPerKg = 85; ebvLabel = '85 mL/kg (neonate)'; }
+      else if (m < 12) { ebvPerKg = 80; ebvLabel = '80 mL/kg (1–12mo)'; }
+      else if (m < 24) { ebvPerKg = 75; ebvLabel = '75 mL/kg (12–24mo)'; }
+      else if (m < 72) { ebvPerKg = 70; ebvLabel = '70 mL/kg (2–6yr)'; }
+      else { ebvPerKg = 65; ebvLabel = '65 mL/kg (>6yr)'; }
+    } else if (w != null) {
+      ebvPerKg = 70; ebvLabel = '70 mL/kg (default — enter age for age-graded value)';
+    }
+    drug({ name: 'EBV', dose: ebvLabel, custom: (ebvPerKg == null || w == null) ? '—' : Math.round(w * ebvPerKg) + ' mL' });
+
+    sectionHead('Transfusion');
+    drug({ name: 'Packed RBCs', dose: '10–15 mL/kg', sub: '↑ Hgb 2–3 g/dL', custom: w == null ? '—' : Math.round(w * 10) + '–' + Math.round(w * 15) + ' mL' });
+    drug({ name: 'Platelets', dose: '5–10 mL/kg', sub: '↑ plt 50–100k', custom: w == null ? '—' : Math.round(w * 5) + '–' + Math.round(w * 10) + ' mL' });
+    drug({ name: 'Fresh frozen plasma', dose: '10–15 mL/kg', sub: 'Factor levels ↑ 15–20%', custom: w == null ? '—' : Math.round(w * 10) + '–' + Math.round(w * 15) + ' mL' });
+    drug({ name: 'Cryoprecipitate', dose: '1–2 units/kg', sub: 'Fibrinogen ↑ 60–100 mg/dL', custom: w == null ? '—' : Math.round(w * 1) + '–' + Math.round(w * 2) + ' units' });
+  }
+  registerStep('eq-fluids', 'Fluids & blood', renderFluids, ['Home', 'Equipment']);
+
+  function renderMABL() {
+    titleWithFav('MABL — maximum allowable blood loss', 'MABL = EBV × (Starting Hct − Min Hct) / Starting Hct', 'eq-mabl');
+    const w = calcWeight();
+    const m = ageMonths();
+
+    // EBV
+    let ebvPerKg = 70;
+    if (m != null) {
+      if (m < 1) ebvPerKg = 85;
+      else if (m < 12) ebvPerKg = 80;
+      else if (m < 24) ebvPerKg = 75;
+      else if (m < 72) ebvPerKg = 70;
+      else ebvPerKg = 65;
+    }
+    const ebv = (w == null) ? null : w * ebvPerKg;
+
+    // Editable Hcts via ctx
+    if (ctx.mablStart == null) ctx.mablStart = 42;
+    if (ctx.mablMin == null) ctx.mablMin = 25;
+
+    function input(label, key, unit) {
+      const r = el('div', 'input-row');
+      r.appendChild(el('label', null, label));
+      const inp = document.createElement('input');
+      inp.type = 'number';
+      inp.inputMode = 'decimal';
+      inp.step = 'any';
+      inp.value = ctx[key];
+      inp.style.maxWidth = '120px';
+      inp.addEventListener('input', () => {
+        ctx[key] = inp.value === '' ? null : Number(inp.value);
+        recompute();
+      });
+      r.appendChild(inp);
+      r.appendChild(el('span', 'unit', unit));
+      stage.appendChild(r);
+    }
+    sectionHead('Inputs');
+    const ebvRow = el('div', 'note info');
+    ebvRow.innerHTML = '<strong>EBV:</strong> ' + (ebv == null ? '—' : Math.round(ebv) + ' mL') + ' (' + ebvPerKg + ' mL/kg' + (w != null ? ' × ' + roundMg(w) + ' kg' : '') + ')';
+    stage.appendChild(ebvRow);
+    input('Starting Hct', 'mablStart', '% (enter patient pre-op Hct)');
+    input('Minimum accepted Hct', 'mablMin', '% (typical 25–30; lower if healthy)');
+
+    sectionHead('Result');
+    const resultDiv = el('div');
+    resultDiv.id = '__mabl_result';
+    stage.appendChild(resultDiv);
+    function recompute() {
+      if (ebv == null || ctx.mablStart == null || ctx.mablMin == null || ctx.mablStart === 0) {
+        resultDiv.innerHTML = '<div class="note">Enter values to compute.</div>';
+        return;
+      }
+      const mabl = ebv * (ctx.mablStart - ctx.mablMin) / ctx.mablStart;
+      resultDiv.innerHTML = '<div class="note success"><strong>MABL: ' + Math.round(mabl) + ' mL</strong><br><span style="font-size:12px;opacity:0.8">Above this estimated loss, plan for PRBC transfusion. Recalculate intraop with measured Hct.</span></div>';
+    }
+    recompute();
+  }
+  registerStep('eq-mabl', 'MABL', renderMABL, ['Home', 'Equipment']);
+
+  function renderDefib() {
+    titleWithFav('Defibrillation / cardioversion', 'J/kg by indication.', 'eq-defib');
+    const w = calcWeight();
+    function row(label, val, sub) {
+      const r = el('div', 'drug');
+      const left = el('div', 'd-left');
+      left.appendChild(el('div', 'd-name', label));
+      if (sub) left.appendChild(el('div', 'd-sub', sub));
+      const right = el('div', 'd-right');
+      right.innerHTML = '<div class="d-mg">' + (val || '—') + '</div>';
+      r.appendChild(left); r.appendChild(right);
+      stage.appendChild(r);
+    }
+    sectionHead('Defibrillation (VF / pulseless VT)');
+    row('1st shock', w == null ? null : Math.round(w * 2) + ' J', '2 J/kg');
+    row('2nd shock', w == null ? null : Math.round(w * 4) + ' J', '4 J/kg');
+    row('Subsequent', w == null ? null : Math.round(w * 4) + ' J+', '≥4 J/kg, max 10 J/kg or adult 200 J biphasic');
+
+    sectionHead('Synchronized cardioversion (SVT/VT w/ pulse)');
+    row('1st shock', w == null ? null : Math.round(w * 0.5) + '–' + Math.round(w * 1) + ' J', '0.5–1 J/kg, sedate if possible');
+    row('2nd shock', w == null ? null : Math.round(w * 2) + ' J', '2 J/kg');
+  }
+  registerStep('eq-defib', 'Defibrillation', renderDefib, ['Home', 'Equipment']);
+
+
+  // ============ BUNDLES ============
+
+  function renderBundleRoutineGA() {
+    titleWithFav('Routine GA setup', 'Standard induction, maintenance, emergence for healthy ASA 1-2 child.', 'b-routineGA');
+    stage.appendChild(el('div', 'bundle-head', 'Sequence: Patient input → premed (if needed) → IV access → induction → paralytic → intubation → maintenance → reversal → antiemetic → emergence → analgesia.'));
+
+    sectionHead('1 — Premedication (if needed)');
+    drug({ name: 'Midazolam', dose: '0.5 mg/kg PO', sub: 'Anxious child, separation difficulty', perKg: 0.5, cap: 15, conc: 'midazolam_po_syrup' });
+    drug({ name: 'Acetaminophen', dose: '15 mg/kg PO', sub: 'Multimodal start', perKg: 15, cap: 1000 });
+
+    sectionHead('2 — Induction');
+    drug({ name: 'Propofol', dose: '2–3.5 mg/kg IV', perKgLow: 2, perKgHigh: 3.5, cap: 200, conc: 'propofol' });
+    drug({ name: 'Fentanyl', dose: '1–3 mcg/kg IV', sub: 'Blunt response', perKgLow: 1, perKgHigh: 3, cap: 100, unit: 'mcg', conc: 'fentanyl' });
+    drug({ name: 'Lidocaine', dose: '1 mg/kg IV', sub: 'Pre-prop, reduces injection pain', perKg: 1, cap: 100, conc: 'lidocaine_iv' });
+
+    sectionHead('3 — Paralytic');
+    drug({ name: 'Rocuronium', dose: '0.6 mg/kg IV', sub: 'Reversible with sugammadex', perKg: 0.6, conc: 'rocuronium' });
+
+    sectionHead('4 — Antibiotics');
+    drug({ name: 'Cefazolin', dose: '25 mg/kg IV', perKg: 25, cap: 2000, src: 'Within 60 min of incision. Vanco within 120 min.' });
+
+    sectionHead('5 — PONV prophylaxis');
+    drug({ name: 'Ondansetron', dose: '0.15 mg/kg IV', sub: 'End of case', perKg: 0.15, cap: 4, conc: 'ondansetron' });
+    drug({ name: 'Dexamethasone', dose: '0.15 mg/kg IV', sub: 'After induction', perKg: 0.15, cap: 8, conc: 'dexamethasone' });
+
+    sectionHead('6 — Reversal (end of case)');
+    drug({ name: 'Sugammadex', dose: '2 mg/kg IV', sub: 'Routine reversal (TOF ≥2)', perKg: 2, conc: 'sugammadex' });
+    drug({ name: 'Sugammadex', dose: '4 mg/kg IV', sub: 'Deep block (PTC 1–2)', perKg: 4, conc: 'sugammadex' });
+    drug({ name: 'Neostigmine', dose: '0.06 mg/kg IV', sub: 'Alternative — needs TOF ≥2 twitches', perKg: 0.06, cap: 5, conc: 'neostigmine' });
+    drug({ name: 'Glycopyrrolate', dose: '0.01 mg/kg IV', sub: 'With neostigmine — blocks muscarinic', perKg: 0.01, conc: 'glycopyrrolate' });
+
+    sectionHead('7 — Postop analgesia');
+    drug({ name: 'Fentanyl', dose: '1–2 mcg/kg IV', sub: 'PRN — peri-emergence', perKgLow: 1, perKgHigh: 2, unit: 'mcg', conc: 'fentanyl' });
+    drug({ name: 'Toradol', dose: '0.5 mg/kg IV', sub: 'If no surgical bleeding concern', perKg: 0.5, cap: 15, conc: 'toradol' });
+  }
+  registerStep('b-routineGA', 'Routine GA setup', renderBundleRoutineGA, ['Home', 'Bundles']);
+
+  function renderBundleMask() {
+    titleWithFav('Mask induction', 'Inhalational induction for child without IV.', 'b-mask');
+    stage.appendChild(el('div', 'bundle-head', 'Sequence: 8% sevo in N₂O/O₂ (or 100% O2) → loss of lash reflex → IV access while patient deepens → IV adjuncts → intubation.'));
+
+    sectionHead('Inhalational');
+    note('<strong>Sevoflurane 8%</strong> in 70% N₂O / 30% O₂ (faster than O2 alone). Apply mask gently. Use "rabbit" or single-breath technique if cooperative. Watch for breath holding, laryngospasm at light planes. Stage 2 lasts 30–60 seconds.', 'info');
+
+    sectionHead('IV access');
+    note('Place IV after loss of lash reflex but before noxious stimulus (paralysis/tube). Apply EMLA preoperatively when possible.', 'info');
+
+    sectionHead('Once IV is in');
+    drug({ name: 'Propofol', dose: '1–2 mg/kg IV', sub: 'Smooth transition to IV plane', perKgLow: 1, perKgHigh: 2, conc: 'propofol' });
+    drug({ name: 'Fentanyl', dose: '1–2 mcg/kg IV', perKgLow: 1, perKgHigh: 2, cap: 100, unit: 'mcg', conc: 'fentanyl' });
+    drug({ name: 'Rocuronium', dose: '0.6 mg/kg IV', sub: 'Intubation', perKg: 0.6, conc: 'rocuronium' });
+
+    sectionHead('Laryngospasm rescue (have these drawn up)');
+    drug({ name: 'Propofol', dose: '0.5–1 mg/kg IV', sub: 'First-line break', perKgLow: 0.5, perKgHigh: 1, conc: 'propofol' });
+    drug({ name: 'Succinylcholine IV', dose: '0.5–1 mg/kg', perKgLow: 0.5, perKgHigh: 1, cap: 150, conc: 'succinylcholine' });
+    drug({ name: 'Succinylcholine IM', dose: '4 mg/kg', sub: 'If no IV yet (anterolateral thigh)', perKg: 4, cap: 150, conc: 'succinylcholine' });
+    drug({ name: 'Atropine', dose: '0.02 mg/kg IV', sub: 'Pre-treat or with succ', perKg: 0.02, cap: 0.5, conc: 'atropine' });
+  }
+  registerStep('b-mask', 'Mask induction', renderBundleMask, ['Home', 'Bundles']);
+
+  function renderBundleRSI() {
+    titleWithFav('RSI — rapid sequence intubation', 'Full stomach, aspiration risk. Modified RSI common in peds (mask ventilation often allowed before paralysis to prevent desaturation).', 'b-rsi');
+    stage.appendChild(el('div', 'bundle-head', 'Sequence: Preoxygenate fully → IV induction agent → paralytic (no mask vent if classical RSI, or gentle mask vent if modified) → cricoid (debated) → intubate.'));
+
+    sectionHead('Preoxygenation');
+    note('3 min normal tidal breathing of 100% O2, OR 8 vital-capacity breaths. Peds desat fast (lower FRC : O2 consumption ratio).', 'info');
+
+    sectionHead('Pre-treatment (optional)');
+    drug({ name: 'Lidocaine', dose: '1 mg/kg IV', sub: 'Blunt laryngoscopy response', perKg: 1, cap: 100, conc: 'lidocaine_iv' });
+    drug({ name: 'Atropine', dose: '0.02 mg/kg IV', sub: 'Pre-treat for succ in <1yr, or with high-dose roc', perKg: 0.02, cap: 0.5, conc: 'atropine' });
+
+    sectionHead('Induction');
+    drug({ name: 'Propofol', dose: '2–3 mg/kg IV', sub: 'Stable hemodynamics', perKgLow: 2, perKgHigh: 3, cap: 200, conc: 'propofol' });
+    drug({ name: 'Etomidate', dose: '0.3 mg/kg IV', sub: 'Cardiac-stable alternative', perKg: 0.3, cap: 40 });
+    drug({ name: 'Ketamine', dose: '1–2 mg/kg IV', sub: 'Hemodynamically unstable, asthma, sepsis', perKgLow: 1, perKgHigh: 2, cap: 200, conc: 'ketamine_iv' });
+
+    sectionHead('Paralytic');
+    drug({ name: 'Rocuronium', dose: '1.2 mg/kg IV', sub: 'RSI dose — onset ~45 sec. Have sugammadex.', perKg: 1.2, conc: 'rocuronium' });
+    const m = ageMonths();
+    let succDose = 1;
+    if (m != null && m < 6) succDose = 3;
+    else if (m != null && m < 24) succDose = 2;
+    drug({ name: 'Succinylcholine', dose: '<6mo: 3 · <2yr: 2 · ≥2yr: 1 mg/kg', sub: 'If no contraindication', perKg: succDose, cap: 150, conc: 'succinylcholine' });
+
+    note('In a child who can\'t be preoxygenated or with severe hypoxia risk, modified RSI with gentle mask ventilation (pressure <12 cm H2O) is preferred over apnea.', 'warn');
+  }
+  registerStep('b-rsi', 'RSI', renderBundleRSI, ['Home', 'Bundles']);
+
+  // ============ IV TUBING / DRIP STRATEGY ============
+  // Combined age + weight + rate heuristic for choosing drip set / burette.
+  // Returns { primary, alt, reason } where primary is the recommended strategy.
+  function ivTubingPlan() {
+    const w = calcWeight();
+    const m = ageMonths();
+    // Compute maintenance rate (4-2-1) — same as Fluids page
+    let maint = null;
+    if (w != null) {
+      if (w <= 10) maint = w * 4;
+      else if (w <= 20) maint = 40 + (w - 10) * 2;
+      else maint = w + 40;
+    }
+    if (w == null) return { primary: null, alt: null, reason: 'Enter weight to get a recommendation', maint: null };
+    // Burette + microdrip: infants OR <10 kg OR any setting where free-flow is dangerous
+    if ((m != null && m < 12) || w < 10) {
+      return {
+        primary: 'Burette (Buretrol) + microdrip 60 gtt/mL',
+        alt: 'Pump always if available',
+        reason: (m != null && m < 12) ? 'Infant (<12 mo)' : '<10 kg',
+        maint: maint
+      };
+    }
+    // Macrodrip OK at ~10 yr AND ~40 kg (functionally adult sizing).
+    // Note: peds maintenance rate rarely exceeds 100 mL/hr by 4-2-1, but intraop rates
+    // (surgical replacement + maintenance) often do — so use age+weight as the trigger
+    // and let the user choose macrodrip if expected total rate is high.
+    const yr = m == null ? null : m / 12;
+    if ((yr == null || yr >= 10) && w >= 40) {
+      return {
+        primary: 'Macrodrip 10–15 gtt/mL',
+        alt: 'Microdrip OK if rate <100 mL/hr expected',
+        reason: '≥10 yr · ≥40 kg (functionally adult)',
+        maint: maint
+      };
+    }
+    // Default: microdrip alone for everyone else
+    return {
+      primary: 'Microdrip 60 gtt/mL',
+      alt: 'Add burette if free-flow harm concern (eg. cardiac, neuro)',
+      reason: 'Child not yet large/fast enough for macrodrip',
+      maint: maint
+    };
+  }
+
+  // Render the IV tubing recommendation as a drug-row-style block.
+  // Used in both Room Setup and the standalone IV setup page.
+  function renderIVTubingBlock(opts) {
+    opts = opts || {};
+    const plan = ivTubingPlan();
+    if (plan.primary == null) {
+      const r = el('div', 'drug');
+      const left = el('div', 'd-left');
+      left.appendChild(el('div', 'd-name', 'IV tubing'));
+      left.appendChild(el('div', 'd-sub', plan.reason));
+      r.appendChild(left);
+      stage.appendChild(r);
+      return;
+    }
+    const r = el('div', 'drug');
+    const left = el('div', 'd-left');
+    left.appendChild(el('div', 'd-name', 'IV tubing'));
+    left.appendChild(el('div', 'd-sub', plan.reason + ' · maintenance ' + Math.round(plan.maint) + ' mL/hr'));
+    const right = el('div', 'd-right');
+    right.innerHTML = '<div class="d-mg" style="font-size:14px;line-height:1.3">' + plan.primary + '</div>' +
+                      '<div class="d-ml" style="margin-top:4px">' + plan.alt + '</div>';
+    r.appendChild(left); r.appendChild(right);
+    stage.appendChild(r);
+  }
+
+  // ============ ROOM SETUP (combined equipment view) ============
+
+  function renderRoomSetup() {
+    titleWithFav('Room setup', 'Pre-case checklist. Walk the room — pull these sizes and have them at hand before the patient rolls in.', 'b-room');
+    const w = calcWeight();
+    const m = ageMonths();
+
+    // Helper to render an inline row with label + value
+    function row(label, val, sub) {
+      const r = el('div', 'drug');
+      const left = el('div', 'd-left');
+      left.appendChild(el('div', 'd-name', label));
+      if (sub) left.appendChild(el('div', 'd-sub', sub));
+      const right = el('div', 'd-right');
+      right.innerHTML = '<div class="d-mg" style="font-size:15px">' + (val || '—') + '</div>';
+      r.appendChild(left); r.appendChild(right);
+      stage.appendChild(r);
+    }
+
+    sectionHead('Anesthesia circuit');
+    let circuit = null;
+    if (w != null) {
+      if (w < 10) circuit = 'Pediatric circuit (low compliance)';
+      else if (w < 25) circuit = 'Pediatric circuit';
+      else circuit = 'Adult circuit';
+    }
+    row('Circuit', circuit, w == null ? 'Need weight' : 'For ' + roundMg(w) + ' kg');
+
+    let bagSize = null;
+    if (w != null) {
+      if (w < 7) bagSize = '0.5 L';
+      else if (w < 25) bagSize = '1 L';
+      else bagSize = '2 L';
+    }
+    row('Reservoir bag', bagSize);
+
+    sectionHead('Mask & airway adjuncts');
+    let maskSize = null;
+    if (w != null) {
+      if (w < 5) maskSize = 'Size 0 — neonate';
+      else if (w < 10) maskSize = 'Size 1 — small infant';
+      else if (w < 20) maskSize = 'Size 2 — orange';
+      else if (w < 40) maskSize = 'Size 3 — purple';
+      else if (w < 60) maskSize = 'Size 4 — green';
+      else maskSize = 'Size 5 — adult';
+    }
+    row('Face mask', maskSize);
+
+    let opaSize = null;
+    if (m != null) {
+      if (m < 1) opaSize = '40 mm (clear) — neonatal';
+      else if (m < 6) opaSize = '50 mm (blue) — Rusch 0';
+      else if (m < 24) opaSize = '60 mm (black) — Guedel';
+      else if (m < 72) opaSize = '70 mm (white)';
+      else if (m < 144) opaSize = '80 mm (green)';
+      else if (m < 192) opaSize = '90 mm (yellow)';
+      else opaSize = '100 mm (red) — adult';
+    }
+    row('Oral airway (OPA)', opaSize, m == null ? 'Need age' : null);
+
+    let lmaSize = null;
+    if (w != null) {
+      if (w < 5) lmaSize = '1 (≤4 mL cuff)';
+      else if (w < 10) lmaSize = '1.5 (≤7 mL)';
+      else if (w < 20) lmaSize = '2 (≤10 mL)';
+      else if (w < 30) lmaSize = '2.5 (≤14 mL)';
+      else if (w < 50) lmaSize = '3 (≤20 mL)';
+      else if (w < 70) lmaSize = '4 (≤30 mL)';
+      else lmaSize = '5 (≤40 mL)';
+    }
+    row('LMA', lmaSize);
+
+    sectionHead('ETT & laryngoscope');
+    let oCuf=null, oUn=null, nCuf=null, nUn=null;
+    if (m != null) {
+      if (m < 12) { oCuf=3.0; oUn=3.5; nCuf=2.5; nUn=3.5; }
+      else if (m < 24) { oCuf=3.5; oUn=4.0; nCuf=3.0; nUn=4.0; }
+      else {
+        const y = m / 12;
+        oCuf = Math.round((y/4 + 3.5)*2)/2;
+        oUn = Math.round((y/4 + 4)*2)/2;
+        nCuf = Math.round((y/4 + 3)*2)/2;
+        nUn = Math.round((y/4 + 4)*2)/2;
+      }
+    }
+    row('Oral ETT', oCuf == null ? null : oCuf + ' cuf / ' + oUn + ' uncuf (mm)', m == null ? 'Need age' : null);
+    row('Nasal ETT', nCuf == null ? null : nCuf + ' cuf / ' + nUn + ' uncuf (mm)', m == null ? 'Need age' : null);
+
+    let depthOral = null, depthNose = null;
+    if (m != null && w != null) {
+      if (m < 12) { depthOral = (w+6) + '–' + (w+7); depthNose = w+8; }
+      else if (m < 24) { depthOral = (w+7) + '–' + (w+8); depthNose = w+9; }
+      else {
+        const y = m/12;
+        depthOral = (10+y/2) + '–' + (12+y/2);
+        depthNose = 15 + y/2;
+      }
+    }
+    row('ET depth at teeth', depthOral == null ? null : depthOral + ' cm');
+    row('ET depth at nose', depthNose == null ? null : (Math.round(depthNose*10)/10) + ' cm');
+
+    let blade = null;
+    if (m != null && w != null) {
+      if (m < 1) blade = 'Miller 0';
+      else if (m < 24) blade = 'Miller 1';
+      else if (m < 36) blade = 'Wis-Hipple 1.5 or Miller 1';
+      else if (m < 72) blade = 'Mac 2 or Miller 2';
+      else blade = w < 25 ? 'Philips 1 or Mac 2' : 'Philips 2 or Mac 3';
+    }
+    row('Laryngoscope blade', blade);
+
+    sectionHead('Monitoring');
+    let cuff = null;
+    if (w != null) {
+      if (w < 5) cuff = 'Philips size 1';
+      else if (w < 10) cuff = 'Philips size 2';
+      else if (w < 15) cuff = 'Philips size 3';
+      else if (w < 25) cuff = 'WA size 6';
+      else if (w < 35) cuff = 'WA size 7';
+      else if (w < 45) cuff = 'WA size 8 — or 10 if loose';
+      else cuff = 'WA size 10';
+    }
+    row('BP cuff', cuff, w == null ? 'Need weight' : 'Upper arm');
+
+    sectionHead('Ventilator starting points');
+    row('Tidal volume', w == null ? null : Math.round(w*6) + '–' + Math.round(w*10) + ' mL', '6–10 mL/kg');
+    let rrStart = null;
+    if (m != null) {
+      if (m < 1) rrStart = '30–40';
+      else if (m < 12) rrStart = '24–30';
+      else if (m < 36) rrStart = '20–24';
+      else if (m < 144) rrStart = '16–20';
+      else rrStart = '12–16';
+    }
+    row('Starting RR', rrStart);
+    row('PEEP', '5 cm H₂O', 'Default; adjust for pathology');
+
+    sectionHead('Fluids');
+    let maint = null;
+    if (w != null) {
+      if (w <= 10) maint = w * 4;
+      else if (w <= 20) maint = 40 + (w - 10) * 2;
+      else maint = w + 40;
+    }
+    row('Maintenance fluid', maint == null ? null : Math.round(maint) + ' mL/hr', '4-2-1 rule');
+    row('20 mL/kg bolus pre-drawn', w == null ? null : Math.round(w*20) + ' mL');
+    renderIVTubingBlock();
+    note('<strong>Tubing heuristic:</strong> burette + microdrip for infants and anyone where free-flow could harm; microdrip alone when rate <100 mL/hr; macrodrip acceptable once large enough and rate high enough to make drop-counting impractical (~10 yr / ~40 kg / >100 mL/hr). <em>Check your local P&P — published standards are the floor.</em>', 'info');
+
+    note('<strong>Tip:</strong> If you only have age, weight is APLS-estimated — equipment sizes are best guesses. Real weight when possible.', 'info');
+  }
+  registerStep('b-room', 'Room setup', renderRoomSetup, ['Home', 'Routine']);
+
+  // ============ HEMORRHAGE / MASSIVE TRANSFUSION ============
+
+  function renderHemorrhage() {
+    titleWithFav('Hemorrhage / massive transfusion', 'Massive transfusion in peds: >40 mL/kg PRBC in 24h OR >50% of EBV in 3h. Recognize early, transfuse balanced, replace calcium.', 'em-hemorrhage');
+    note('<strong>Sequence:</strong> recognize → call for blood → large-bore access → balanced resuscitation (1:1:1 plasma:plt:RBC) → replace calcium → TXA early → warm everything → monitor labs (Hgb, ionized Ca, K+, lactate, fibrinogen).', 'danger');
+
+    const w = calcWeight();
+    const m = ageMonths();
+
+    // EBV
+    let ebvPerKg = 70;
+    if (m != null) {
+      if (m < 1) ebvPerKg = 85;
+      else if (m < 12) ebvPerKg = 80;
+      else if (m < 24) ebvPerKg = 75;
+      else if (m < 72) ebvPerKg = 70;
+      else ebvPerKg = 65;
+    }
+    const ebv = w == null ? null : w * ebvPerKg;
+
+    sectionHead('Estimated blood volume (EBV)');
+    drug({ name: 'EBV', dose: ebvPerKg + ' mL/kg', sub: 'Massive transfusion threshold: 50% EBV in 3 h, or >40 mL/kg PRBC in 24 h',
+      custom: ebv == null ? '—' : Math.round(ebv) + ' mL (50% = ' + Math.round(ebv/2) + ' mL)' });
+
+    sectionHead('Components (per dose)');
+    drug({ name: 'Packed RBC', dose: '10–15 mL/kg', sub: '↑ Hgb 2–3 g/dL', custom: w == null ? '—' : Math.round(w*10) + '–' + Math.round(w*15) + ' mL' });
+    drug({ name: 'FFP', dose: '10–15 mL/kg', sub: '↑ factors 15–20%; goal INR <1.5', custom: w == null ? '—' : Math.round(w*10) + '–' + Math.round(w*15) + ' mL' });
+    drug({ name: 'Platelets', dose: '5–10 mL/kg', sub: '↑ plt 50–100k; goal >50k (or >100k if intracranial/spinal)', custom: w == null ? '—' : Math.round(w*5) + '–' + Math.round(w*10) + ' mL' });
+    drug({ name: 'Cryoprecipitate', dose: '1–2 units/kg', sub: '↑ fibrinogen 60–100 mg/dL; goal >150–200', custom: w == null ? '—' : Math.round(w*1) + '–' + Math.round(w*2) + ' units' });
+
+    sectionHead('Balanced ratio (MTP)');
+    note('<strong>1:1:1 PRBC : FFP : plt</strong> in volumes. Practical peds: every 10–15 mL/kg PRBC, give 10–15 mL/kg FFP + 5–10 mL/kg plt. Activate institutional Massive Transfusion Protocol (MTP) early — don\'t wait for it to be definitely needed.', 'info');
+
+    sectionHead('Adjuncts');
+    drug({ name: 'TXA — load', dose: '10–15 mg/kg IV', sub: 'Over 10 min; within 3 h of injury (CRASH-2, CRASH-3)', perKgLow: 10, perKgHigh: 15, cap: 1000,
+      src: 'Pediatric trauma data extrapolated from adult CRASH trials. Earlier = better. Continue infusion 2 mg/kg/hr × 8 h if indicated.' });
+    drug({ name: 'TXA — infusion', dose: '2 mg/kg/hr × 8 h', sub: 'After loading dose', custom: w == null ? '—' : (Math.round(w*2*10)/10) + ' mg/hr × 8h' });
+    drug({ name: 'Calcium chloride', dose: '10–20 mg/kg IV', sub: 'Every 4–5 units PRBC, or per ionized Ca++', perKgLow: 10, perKgHigh: 20, cap: 1000, conc: 'CaCl',
+      src: 'Citrate binds Ca++ → ionized hypocalcemia → ↓ contractility, hypoTN, coagulopathy. Check iCa++ q30 min.' });
+    drug({ name: 'Calcium gluconate', dose: '30–60 mg/kg IV', sub: 'Peripheral OK', perKgLow: 30, perKgHigh: 60, cap: 3000, conc: 'CaGluc' });
+    drug({ name: 'Bicarbonate', dose: '1–2 mEq/kg IV', sub: 'Only if pH <7.2 with adequate ventilation', perKgLow: 1, perKgHigh: 2, cap: 50, unit: 'mEq' });
+
+    sectionHead('Targets (lab goals)');
+    const tbl = el('table', 'ref');
+    const thead = el('thead'); const hr = el('tr');
+    ['Parameter', 'Target', 'Action if abnormal'].forEach(h => { const th = el('th'); th.textContent = h; hr.appendChild(th); });
+    thead.appendChild(hr); tbl.appendChild(thead);
+    const tbody = el('tbody');
+    [
+      ['Hgb', '7–8 g/dL minimum', 'PRBC 10–15 mL/kg'],
+      ['INR', '<1.5', 'FFP 10–15 mL/kg'],
+      ['Platelets', '>50k (>100k if CNS/spine)', 'Plt 5–10 mL/kg'],
+      ['Fibrinogen', '>150–200 mg/dL', 'Cryo 1–2 units/kg'],
+      ['Ionized Ca++', '>1.1 mmol/L', 'CaCl 10–20 mg/kg (central) or CaGluc 30–60 mg/kg'],
+      ['K+', '<5.5 mEq/L', 'Treat hyperK (Ca, insulin/D, albuterol)'],
+      ['pH', '>7.2', 'Improve ventilation + perfusion; bicarb if severe'],
+      ['Temperature', '>36 °C', 'Warmer, forced air, warmed fluids'],
+      ['Lactate', '<2 mmol/L', 'Trend — marker of perfusion'],
+    ].forEach(r => { const tr = el('tr'); r.forEach(c => { const td = el('td'); td.textContent = c; tr.appendChild(td); }); tbody.appendChild(tr); });
+    tbl.appendChild(tbody); stage.appendChild(tbl);
+
+    sectionHead('Pitfalls');
+    note('<strong>Hyperkalemia from old PRBC</strong> — units >2 weeks old leak K+; in massive transfusion or fast infusion, ECG changes can occur. Use fresh blood when available, especially in neonates. <strong>Hypothermia, acidosis, hypoCa</strong> form the "lethal trinity + 1" of trauma coagulopathy. Warm everything. <strong>Don\'t forget the cause</strong> — surgical bleeding needs surgical control; medical bleeding (DIC, dilutional) needs components.', 'warn');
+  }
+  registerStep('em-hemorrhage', 'Hemorrhage / massive transfusion', renderHemorrhage, ['Home', 'Emergent']);
+
+  // ============ IV SETUP (standalone equipment page) ============
+
+  function renderIVSetup() {
+    titleWithFav('IV setup — tubing & drip strategy', 'Patient-specific tubing recommendation, with the heuristic and caveat underneath.', 'eq-ivsetup');
+
+    sectionHead('Recommended for this patient');
+    renderIVTubingBlock();
+
+    sectionHead('The heuristic');
+    note('<strong>Burette (Buretrol) + microdrip 60 gtt/mL</strong> — infants (<12 mo) and any patient where free-flow could cause harm. Limits the volume that can run in if the pump fails or the line opens up. Default for cardiac, neuro, neonatal, and <10 kg.<br><br><strong>Microdrip 60 gtt/mL alone</strong> — children running maintenance <100 mL/hr. Lets you count drops, hard to over-deliver inadvertently.<br><br><strong>Macrodrip 10–15 gtt/mL</strong> — large enough patient and high enough rate that drop-counting is impractical. Rough proxies: ~10 years or ~40 kg, rates >100 mL/hr. Or anytime you need high-flow access (resuscitation, hemorrhage).', 'info');
+
+    sectionHead('Combined triggers');
+    const tbl = el('table', 'ref');
+    const thead = el('thead'); const hr = el('tr');
+    ['Trigger', 'Threshold', 'Choice'].forEach(h => { const th = el('th'); th.textContent = h; hr.appendChild(th); });
+    thead.appendChild(hr); tbl.appendChild(thead);
+    const tbody = el('tbody');
+    [
+      ['Age', '<12 mo', 'Burette + microdrip'],
+      ['Weight', '<10 kg', 'Burette + microdrip'],
+      ['Free-flow harm risk', 'Cardiac, neuro, neonatal', 'Burette + microdrip'],
+      ['Maintenance rate', '<100 mL/hr', 'Microdrip alone OK'],
+      ['Age + Weight + Rate', '≥10 yr · ≥40 kg · >100 mL/hr', 'Macrodrip acceptable'],
+      ['Need for high-flow', 'Resuscitation, blood loss', 'Macrodrip / large-bore'],
+    ].forEach(r => { const tr = el('tr'); r.forEach(c => { const td = el('td'); td.textContent = c; tr.appendChild(td); }); tbody.appendChild(tr); });
+    tbl.appendChild(tbody); stage.appendChild(tbl);
+
+    note('<strong>Local policy first.</strong> Your facility\'s pediatric clinical educator, pharmacy, or nursing P&P committee almost certainly has a written local policy — align to that for medico-legal cover. The published standards are the floor, not the ceiling.', 'warn');
+
+    sectionHead('Related');
+    note('See <strong>Fluids & blood</strong> for maintenance rates, bolus volumes, and transfusion calculations.', 'info');
+  }
+  registerStep('eq-ivsetup', 'IV setup', renderIVSetup, ['Home', 'Equipment']);
+
+  // ============ REFERENCE PAGES ============
+
+  function renderVitals() {
+    titleWithFav('Normal vitals by age', 'Coté & Lerman peds anesthesia reference values.', 'ref-vitals');
+    const m = ageMonths();
+    const data = [
+      { age: 'Neonate (0–28 d)',    mMin: 0,   mMax: 1,    hr: '120–160', sbp: '60–90',  dbp: '30–60', rr: '30–60' },
+      { age: 'Infant (1–12 mo)',    mMin: 1,   mMax: 12,   hr: '100–140', sbp: '70–105', dbp: '50–65', rr: '24–40' },
+      { age: 'Toddler (1–2 yr)',    mMin: 12,  mMax: 24,   hr: '90–130',  sbp: '80–110', dbp: '50–80', rr: '22–30' },
+      { age: 'Preschool (3–5 yr)',  mMin: 36,  mMax: 72,   hr: '80–120',  sbp: '85–115', dbp: '55–85', rr: '20–24' },
+      { age: 'School (6–11 yr)',    mMin: 72,  mMax: 144,  hr: '70–110',  sbp: '95–125', dbp: '60–85', rr: '16–22' },
+      { age: 'Adolescent (12+)',    mMin: 144, mMax: 300,  hr: '60–100',  sbp: '105–135',dbp: '60–85', rr: '12–20' },
+    ];
+    const tbl = el('table', 'ref');
+    const thead = el('thead');
+    const hr = el('tr');
+    ['Age', 'HR (bpm)', 'SBP (mmHg)', 'DBP (mmHg)', 'RR'].forEach(h => { const th = el('th'); th.textContent = h; hr.appendChild(th); });
+    thead.appendChild(hr); tbl.appendChild(thead);
+    const tbody = el('tbody');
+    data.forEach(r => {
+      const tr = el('tr');
+      if (m != null && m >= r.mMin && m < r.mMax) tr.className = 'highlight';
+      [r.age, r.hr, r.sbp, r.dbp, r.rr].forEach(c => { const td = el('td'); td.textContent = c; tr.appendChild(td); });
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody);
+    stage.appendChild(tbl);
+    note('Lower limit SBP rule: <strong>70 + 2 × age (yr)</strong> for 1–10 yr. Below this = hypotension.', 'info');
+  }
+  registerStep('ref-vitals', 'Normal vitals by age', renderVitals, ['Home', 'Reference']);
+
+  function renderLabs() {
+    titleWithFav('Normal labs by age', 'Reference ranges for pediatric labs (vary by lab — confirm with local).', 'ref-labs');
+    note('<strong>Age categories:</strong> Newborn = 0–28 days · Infant = 1–24 months · Child = 2–12 yr · Adolescent = 13+ yr (use adult ranges)', 'info');
+    const m = ageMonths();
+    let activeCol = -1; // 0=Newborn col, 1=Infant, 2=Child
+    if (m != null) {
+      if (m < 1) activeCol = 0;
+      else if (m < 24) activeCol = 1;
+      else if (m < 156) activeCol = 2;
+    }
+    const tbl = el('table', 'ref');
+    const thead = el('thead'); const hr = el('tr');
+    ['Lab', 'Newborn', 'Infant', 'Child', 'Units'].forEach((h, i) => {
+      const th = el('th');
+      th.textContent = h;
+      if (activeCol >= 0 && i === activeCol + 1) th.style.background = 'var(--info-bg)';
+      hr.appendChild(th);
+    });
+    thead.appendChild(hr); tbl.appendChild(thead);
+    const tbody = el('tbody');
+    [
+      ['Hgb', '15–24', '10–13', '11.5–15.5', 'g/dL'],
+      ['Hct', '45–65', '32–42', '34–45', '%'],
+      ['Plt', '150–450', '150–450', '150–450', 'k/μL'],
+      ['WBC', '9–30', '6–17', '4.5–13.5', 'k/μL'],
+      ['Na+', '135–145', '135–145', '135–145', 'mEq/L'],
+      ['K+', '3.7–5.9', '4.1–5.3', '3.4–4.7', 'mEq/L'],
+      ['Cl-', '98–113', '95–112', '95–110', 'mEq/L'],
+      ['HCO3-', '17–24', '19–24', '20–28', 'mEq/L'],
+      ['BUN', '3–25', '5–18', '5–18', 'mg/dL'],
+      ['Cr', '0.3–1.0', '0.2–0.4', '0.3–0.7', 'mg/dL'],
+      ['Glucose', '40–100', '60–100', '70–100', 'mg/dL'],
+      ['Ca++', '8.5–10.5', '8.5–10.5', '8.5–10.5', 'mg/dL'],
+      ['iCa++', '4.4–5.5', '4.4–5.5', '4.4–5.5', 'mg/dL'],
+      ['Mg++', '1.5–2.2', '1.5–2.2', '1.5–2.2', 'mg/dL'],
+      ['PT', '11–15', '11–15', '11–15', 'sec'],
+      ['PTT', '25–35', '25–35', '25–35', 'sec'],
+    ].forEach(r => {
+      const tr = el('tr');
+      r.forEach((c, i) => {
+        const td = el('td');
+        td.textContent = c;
+        if (activeCol >= 0 && i === activeCol + 1) { td.style.background = 'var(--info-bg)'; td.style.fontWeight = '500'; }
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody); stage.appendChild(tbl);
+  }
+  registerStep('ref-labs', 'Normal labs by age', renderLabs, ['Home', 'Reference']);
+
+  function renderOpioidConv() {
+    titleWithFav('Opioid conversion', 'Morphine equivalents. Reduce by 25–50% for incomplete cross-tolerance.', 'ref-opioid-conv');
+    const tbl = el('table', 'ref');
+    const thead = el('thead'); const hr = el('tr');
+    ['Drug', 'IV (mg)', 'PO (mg)', 'Notes'].forEach(h => { const th = el('th'); th.textContent = h; hr.appendChild(th); });
+    thead.appendChild(hr); tbl.appendChild(thead);
+    const tbody = el('tbody');
+    [
+      ['Morphine', '10', '30', 'Reference standard'],
+      ['Hydromorphone', '1.5', '7.5', '~6–7× morphine IV'],
+      ['Fentanyl', '0.1 (100 mcg)', '—', '~100× morphine IV'],
+      ['Oxycodone', '—', '20', 'PO only'],
+      ['Hydrocodone', '—', '30', 'PO only'],
+      ['Codeine', '—', '200', 'Avoid in peds — variable CYP2D6 metabolism'],
+      ['Tramadol', '—', '120', 'Caution in peds — FDA warning <12 yr'],
+      ['Methadone', '5–10', '10–20', 'Complex — consult palliative'],
+    ].forEach(r => {
+      const tr = el('tr');
+      r.forEach(c => { const td = el('td'); td.textContent = c; tr.appendChild(td); });
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody); stage.appendChild(tbl);
+    note('Codeine and tramadol carry FDA black-box warnings in peds (CYP2D6 ultra-rapid metabolizers → fatal respiratory depression). Avoid in <12 yr; caution 12–18 yr.', 'warn');
+  }
+  registerStep('ref-opioid-conv', 'Opioid conversion', renderOpioidConv, ['Home', 'Reference']);
+
+  function renderMidazRoutes() {
+    titleWithFav('Midazolam — route equivalence', 'Per Coté et al. Onset and dose vary substantially by route.', 'ref-midaz-routes');
+    const tbl = el('table', 'ref');
+    const thead = el('thead'); const hr = el('tr');
+    ['Route', 'Dose (mg/kg)', 'Onset', 'Notes'].forEach(h => { const th = el('th'); th.textContent = h; hr.appendChild(th); });
+    thead.appendChild(hr); tbl.appendChild(thead);
+    const tbody = el('tbody');
+    [
+      ['IV', '0.05–0.1', '1–3 min', 'Cap 2 mg single bolus typical'],
+      ['IM', '0.1–0.15', '5–10 min', 'Useful when no IV'],
+      ['PO (syrup)', '0.5–0.75', '15–30 min', 'Mix in juice; cap 15–20 mg'],
+      ['Intranasal', '0.2–0.3', '5–10 min', 'Stings; use IV-form 5 mg/mL'],
+      ['PR', '0.5–1.0', '10–15 min', 'Variable absorption'],
+      ['Sublingual', '0.2', '10–15 min', 'Alternative to nasal'],
+    ].forEach(r => {
+      const tr = el('tr');
+      r.forEach(c => { const td = el('td'); td.textContent = c; tr.appendChild(td); });
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody); stage.appendChild(tbl);
+  }
+  registerStep('ref-midaz-routes', 'Midazolam routes', renderMidazRoutes, ['Home', 'Reference']);
+
+  function renderKetamineRoutes() {
+    titleWithFav('Ketamine — route equivalence', 'Wide therapeutic index. Add atropine/glyco for secretions.', 'ref-ketamine-routes');
+    const tbl = el('table', 'ref');
+    const thead = el('thead'); const hr = el('tr');
+    ['Route', 'Dose (mg/kg)', 'Onset', 'Notes'].forEach(h => { const th = el('th'); th.textContent = h; hr.appendChild(th); });
+    thead.appendChild(hr); tbl.appendChild(thead);
+    const tbody = el('tbody');
+    [
+      ['IV (induction)', '1–2', '30–60 sec', 'Hemodynamically stable'],
+      ['IV (sedation)', '0.25–0.5', '30–60 sec', 'Procedural sedation'],
+      ['IM', '4–5', '3–5 min', 'No-IV induction'],
+      ['IM (sedation)', '2–3', '3–5 min', 'Procedural sedation'],
+      ['PO', '5–6', '20–30 min', 'Mix in juice; uses IV vial orally'],
+      ['Intranasal', '3–6', '5–15 min', 'Use 50 or 100 mg/mL'],
+      ['PR', '5–10', '15–30 min', 'Variable; less common'],
+    ].forEach(r => {
+      const tr = el('tr');
+      r.forEach(c => { const td = el('td'); td.textContent = c; tr.appendChild(td); });
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody); stage.appendChild(tbl);
+  }
+  registerStep('ref-ketamine-routes', 'Ketamine routes', renderKetamineRoutes, ['Home', 'Reference']);
+
+  function renderConcentrations() {
+    titleWithFav('Drug concentrations', 'The lookup table that drives all mL calculations. Edit in code (CONC object) if your pharmacy stocks different concentrations.', 'ref-conc');
+    const tbl = el('table', 'ref');
+    const thead = el('thead'); const hr = el('tr');
+    ['Drug', 'Concentration', 'Display'].forEach(h => { const th = el('th'); th.textContent = h; hr.appendChild(th); });
+    thead.appendChild(hr); tbl.appendChild(thead);
+    const tbody = el('tbody');
+    Object.keys(CONC).forEach(k => {
+      const tr = el('tr');
+      const c = CONC[k];
+      const name = k.replace(/_/g, ' ');
+      const disp = c < 1 ? c + ' mg/mL (' + (c * 1000) + ' mcg/mL)' : c + ' mg/mL';
+      [name, disp, ''].forEach((c2, i) => { const td = el('td'); td.textContent = c2; tr.appendChild(td); });
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody); stage.appendChild(tbl);
+    note('To change a concentration permanently, edit the <code>CONC</code> object near the top of the JavaScript. All downstream mL calculations follow.', 'info');
+  }
+  registerStep('ref-conc', 'Drug concentrations', renderConcentrations, ['Home', 'Reference']);
+
+  function renderCaps() {
+    titleWithFav('Dose caps', 'Where doses cap at adult max — and why.', 'ref-caps');
+    const tbl = el('table', 'ref');
+    const thead = el('thead'); const hr = el('tr');
+    ['Drug', 'Cap', 'Rationale'].forEach(h => { const th = el('th'); th.textContent = h; hr.appendChild(th); });
+    thead.appendChild(hr); tbl.appendChild(thead);
+    const tbody = el('tbody');
+    [
+      ['Midazolam IV', '2 mg single', 'Titration cap; adult bolus typical'],
+      ['Midazolam PO syrup', '15 mg', 'Institutional convention (some 20)'],
+      ['Atropine', '0.5 mg single', 'Adult max single dose'],
+      ['Glycopyrrolate', '0.2 mg', 'Adult typical max'],
+      ['Cefazolin', '2 g', '3 g if ≥120 kg per SCIP'],
+      ['Toradol', '15 mg IV', 'Evidence-based — equianalgesic to 30 mg'],
+      ['Ondansetron', '4 mg single', 'QT prolongation at higher doses; FDA letter 2012'],
+      ['Dexamethasone (PONV)', '8 mg', 'Higher doses no added benefit'],
+      ['Vancomycin (prophylaxis)', '1.5 g (some 1 g)', 'Renal/oto; slower infusion'],
+      ['Sugammadex 2 mg/kg', 'Uncapped per kg', 'But typical adult max 200 mg per FDA'],
+      ['Sugammadex 16 mg/kg', 'Uncapped', 'For emergent reversal'],
+      ['Succinylcholine IV', '150 mg single', 'FDA labeling; same as adult'],
+      ['Acetaminophen IV/PO', '1000 mg single', 'Daily max 4 g or 75 mg/kg/day, whichever is less'],
+      ['Diphenhydramine', '50 mg', 'Adult typical max'],
+      ['Hydroxyzine', '50 mg', 'Adult typical max'],
+      ['Naloxone (reversal)', '0.4 mg titrated', 'Goal RR, not full reversal'],
+      ['Calcium chloride', '2000 mg single', 'Adult max'],
+      ['Calcium gluconate', '3000 mg single', 'Adult max'],
+      ['Magnesium sulfate', '2000 mg single', 'Adult typical max'],
+      ['Defibrillation', '10 J/kg or 200 J adult', 'Whichever is lower'],
+    ].forEach(r => {
+      const tr = el('tr');
+      r.forEach(c => { const td = el('td'); td.textContent = c; tr.appendChild(td); });
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody); stage.appendChild(tbl);
+    note('Caps reflect adult maxima where applicable. In a 60-kg adolescent, weight-based dosing often equals or exceeds these caps — drug rows flag this with "capped".', 'info');
+  }
+  registerStep('ref-caps', 'Dose caps', renderCaps, ['Home', 'Reference']);
+
+  // ============ INIT ============
+  loadPatient();
+  draw();
+  beat('loaded');
+
+
+  /* ORacle xref adapter */
+  try {
+    var __xrefMap = new Map();
+    for (var __xk in STEP_REGISTRY) { if (STEP_REGISTRY[__xk] && STEP_REGISTRY[__xk].render) __xrefMap.set(STEP_REGISTRY[__xk].render, __xk); }
+    var __xrefStage = document.getElementById('stage');
+    if (__xrefStage) {
+      var __xrefT = null;
+      new MutationObserver(function(){
+        clearTimeout(__xrefT);
+        __xrefT = setTimeout(function(){
+          try { var __r = (typeof path!=='undefined' && path.length) ? path[path.length-1].render : null;
+                var __key = __r ? __xrefMap.get(__r) : null;
+                if (window.XREF) window.XREF.notify(__key, __xrefStage); } catch(e){}
+        }, 50);
+      }).observe(__xrefStage, {childList:true});
+    }
+    var __dh = (location.hash||'').replace('#','').split('?')[0];
+    if (__dh && STEP_REGISTRY[__dh]) { var __ds = STEP_REGISTRY[__dh]; go(__ds.label, __dh, __ds.render, true); }
+  } catch(e){}
+
+})();
+</script>
+</body>
+</html>
