@@ -15393,13 +15393,27 @@ function closeMobileNav(){
     sc.style.display = 'none';
   }
 })();
-document.getElementById('menuBtn').addEventListener('click', () => {
+function openMobileNav(){
   const sb = document.getElementById('sidebar');
   sb.classList.add('open');
-  const scrim = document.createElement('div'); scrim.className = 'scrim';
-  scrim.addEventListener('click', closeMobileNav);
-  document.body.appendChild(scrim);
-});
+  if(!document.querySelector('.scrim')){
+    const scrim = document.createElement('div'); scrim.className = 'scrim';
+    scrim.addEventListener('click', closeMobileNav);
+    document.body.appendChild(scrim);
+  }
+}
+document.getElementById('menuBtn').addEventListener('click', openMobileNav);
+
+/* Hooks the ORacle shell calls so Procedures matches the other apps' search/home tools */
+window.ORACLE_TOOLS = {
+  search(){ openMobileNav(); const ss=document.getElementById('search'); if(ss){ ss.focus(); } },
+  home(){
+    closeMobileNav();
+    if(history.replaceState){ history.replaceState(null,'',location.pathname+location.search); }
+    renderWelcome();
+    const m=document.querySelector('.main'); if(m) m.scrollTop=0; window.scrollTo(0,0);
+  }
+};
 
 renderNav();
 const hash = (location.hash || "").replace('#','');
