@@ -50,6 +50,25 @@
     --sans: 'IBM Plex Sans', system-ui, sans-serif;
     --serif: 'Newsreader', Georgia, serif;
   }
+  /* ---- dark palette (auto when system is dark, or when ORacle forces it) ---- */
+  :root[data-theme="dark"] {
+    --ink: #e7e4dd; --ink-soft: #b8bcc4; --ink-faint: #888e98;
+    --paper: #15171b; --paper-2: #1e2127; --line: #33373f; --line-soft: #272b32;
+    --accent: #e0876e; --accent-soft: #c97a62;
+    --teal: #5cb3aa; --gold: #cdab53; --slate: #90a9c6; --rose: #d18b99;
+    --flag-bg: #2b1e1c; --flag-border: #6e4d44;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 6px 22px rgba(0,0,0,0.5);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+      --ink: #e7e4dd; --ink-soft: #b8bcc4; --ink-faint: #888e98;
+      --paper: #15171b; --paper-2: #1e2127; --line: #33373f; --line-soft: #272b32;
+      --accent: #e0876e; --accent-soft: #c97a62;
+      --teal: #5cb3aa; --gold: #cdab53; --slate: #90a9c6; --rose: #d18b99;
+      --flag-bg: #2b1e1c; --flag-border: #6e4d44;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 6px 22px rgba(0,0,0,0.5);
+    }
+  }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
@@ -92,7 +111,7 @@
     border-radius: var(--radius); font-family: var(--sans); font-size: 13.5px;
     background: var(--paper); color: var(--ink); transition: border-color .15s, box-shadow .15s;
   }
-  #search:focus { outline: none; border-color: var(--accent-soft); box-shadow: 0 0 0 3px rgba(138,51,36,0.08); background: #fff; }
+  #search:focus { outline: none; border-color: var(--accent-soft); box-shadow: 0 0 0 3px rgba(138,51,36,0.08); background: var(--paper-2); }
   #search::placeholder { color: var(--ink-faint); }
   /* hide native search clear (we provide our own) */
   #search::-webkit-search-cancel-button, #landSearch::-webkit-search-cancel-button { -webkit-appearance: none; }
@@ -113,7 +132,7 @@
     border-radius: var(--radius); font-family: var(--sans); font-size: 15px;
     background: var(--paper-2); color: var(--ink); transition: border-color .15s, box-shadow .15s;
   }
-  #landSearch:focus { outline: none; border-color: var(--accent-soft); box-shadow: 0 0 0 3px rgba(138,51,36,0.08); background: #fff; }
+  #landSearch:focus { outline: none; border-color: var(--accent-soft); box-shadow: 0 0 0 3px rgba(138,51,36,0.08); background: var(--paper-2); }
   #landSearch::placeholder { color: var(--ink-faint); }
   .land-search-wrap .land-clear { right: 12px; }
   .land-nav { max-width: 560px; margin-bottom: 8px; max-height: 46vh; overflow-y: auto;
