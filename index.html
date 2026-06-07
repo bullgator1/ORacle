@@ -43,6 +43,19 @@
   .wrap{flex:1 1 auto;position:relative;min-height:0}
   iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--paper)}
   iframe.hidden{display:none}
+  /* Phones: collapse the whole bar onto one line — drop decorative bits, shrink toggle */
+  @media (max-width:640px){
+    header.shell{gap:9px;padding:6px 11px;min-height:0;flex-wrap:nowrap}
+    .brand{margin-right:2px}
+    .brand .logo{width:25px;height:25px}
+    .brand .nm{font-size:18px}
+    .brand .sub{display:none}
+    .hint{display:none}
+    .seg{flex:0 1 auto}
+    .seg button{padding:7px 10px;font-size:12px;gap:0}
+    .seg button .dot{display:none}
+    .seg .xl{display:none}
+  }
 </style>
 </head>
 <body>
@@ -58,7 +71,7 @@
     <div class="seg" id="seg">
       <button data-app="preop"><span class="dot"></span>Pre-op</button>
       <button data-app="proc" class="active"><span class="dot"></span>Procedures</button>
-      <button data-app="peds"><span class="dot"></span>Peds dosing</button>
+      <button data-app="peds"><span class="dot"></span>Peds<span class="xl">&nbsp;dosing</span></button>
     </div>
     <button id="back" title="Return to where you jumped from">← Back</button>
     <span class="hint" id="hint">one bench · three references</span>
