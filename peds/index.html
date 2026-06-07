@@ -37,8 +37,28 @@
     --radius-lg: 14px;
     --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
   }
+  /* forced dark (ORacle toggle sets data-theme="dark"); forced light leaves base :root */
+  :root[data-theme="dark"] {
+    --bg: #161613;
+    --surface: #1f1f1c;
+    --surface-2: #28282499;
+    --text: #f0eee6;
+    --text-2: #b0aea4;
+    --text-3: #7a7870;
+    --border: rgba(255,255,255,0.10);
+    --border-2: rgba(255,255,255,0.18);
+    --info-bg: #0c447c33;
+    --info-fg: #b5d4f4;
+    --warn-bg: #854f0b33;
+    --warn-fg: #fac775;
+    --danger-bg: #791f1f33;
+    --danger-fg: #f0a0a0;
+    --success-bg: #27500a33;
+    --success-fg: #c0dd97;
+    --accent: #5a9be0;
+  }
   @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme]) {
       --bg: #161613;
       --surface: #1f1f1c;
       --surface-2: #28282499;
