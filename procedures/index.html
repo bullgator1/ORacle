@@ -293,6 +293,8 @@
     .scrim { position: fixed; inset: 0; background: rgba(26,29,33,0.35); z-index: 55; }
     .app { z-index: auto; }
   }
+  /* Inside ORacle on phones, the shell bar hosts the menu button — drop our own top bar */
+  @media (max-width: 640px){ .topbar-mobile { display: none; } .main-inner { padding-top: 20px; } }
 </style>
 <script>window.__ORACLE_APP='proc';</script>
 <script src="../xref.js"></script>
