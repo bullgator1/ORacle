@@ -13,13 +13,19 @@
 <style>
   :root{ --ink:#23201d; --ink-faint:#6b645c; --bg:#f6f4ef; --paper:#fffdf9; --line:#e2dcd2;
     --oxblood:#6b2737; --teal:#2f6f6a; --gold:#9a7b29; }
+  :root[data-theme="dark"]{ --ink:#ece9e2; --ink-faint:#9a948b; --bg:#15171b; --paper:#1e2127; --line:#33373f;
+    --oxblood:#cf7e8b; --teal:#5fb3ab; --gold:#cba94e; }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme]){ --ink:#ece9e2; --ink-faint:#9a948b; --bg:#15171b; --paper:#1e2127; --line:#33373f;
+    --oxblood:#cf7e8b; --teal:#5fb3ab; --gold:#cba94e; } }
   *{box-sizing:border-box}
   html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif}
   body{display:flex;flex-direction:column;overflow:hidden}
   header.shell{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:8px 16px;
     background:var(--paper);border-bottom:1px solid var(--line);z-index:10;min-height:54px;flex:0 0 auto}
   .brand{display:flex;align-items:center;gap:9px;margin-right:6px}
-  .brand .logo{width:30px;height:30px;flex:0 0 auto}
+  .logo-btn{appearance:none;border:0;background:transparent;padding:0;margin:0;cursor:pointer;line-height:0;flex:0 0 auto;border-radius:50%}
+  .logo-btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+  .brand .logo{width:30px;height:30px;display:block}
   .brand .txt{display:flex;flex-direction:column;line-height:1.0}
   .brand .nm{font-family:"Newsreader",serif;font-size:21px;font-weight:600;letter-spacing:.01em}
   .brand .nm b{color:var(--oxblood);font-weight:600}
@@ -73,11 +79,15 @@
 <body>
   <header class="shell">
     <div class="brand">
-      <svg class="logo" viewBox="0 0 40 40" aria-hidden="true">
-        <circle cx="20" cy="20" r="16" fill="none" stroke="#6b2737" stroke-width="2.4"/>
-        <polyline points="7,22 13,22 16,12 20,28 23,19 27,19 29,22 33,22" fill="none"
-          stroke="#2f6f6a" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
-      </svg>
+      <button id="themeToggle" class="logo-btn" type="button" title="Toggle light / dark" aria-label="Toggle light or dark theme">
+        <svg class="logo" viewBox="0 0 40 40" aria-hidden="true">
+          <path d="M4,20 A16,16 0 0 1 36,20 Z" fill="#f4f1ea"/>
+          <path d="M4,20 A16,16 0 0 0 36,20 Z" fill="#23201d"/>
+          <circle cx="20" cy="20" r="16" fill="none" stroke="#6b2737" stroke-width="2.4"/>
+          <polyline points="7,22 13,22 16,12 20,28 23,19 27,19 29,22 33,22" fill="none"
+            stroke="#2f6f6a" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+        </svg>
+      </button>
       <div class="txt"><span class="nm">OR<b>acle</b></span><span class="sub">Anesthesia · Perioperative</span></div>
     </div>
     <div class="seg" id="seg">
@@ -96,6 +106,26 @@
   </div>
 <script>
   const APPS={preop:"if-preop",proc:"if-proc",peds:"if-peds"};
+  // ===== theme: auto by default each session; ORacle icon toggles light/dark; resets to auto on reload =====
+  let themeMode='auto';                 // 'auto' | 'light' | 'dark' — intentionally NOT persisted
+  const mq = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null;
+  const effective = ()=> themeMode==='auto' ? ((mq&&mq.matches)?'dark':'light') : themeMode;
+  function setFrameTheme(id){
+    try{ const d=document.getElementById(id).contentDocument; if(d&&d.documentElement){
+      if(themeMode==='auto') d.documentElement.removeAttribute('data-theme');
+      else d.documentElement.setAttribute('data-theme',themeMode);
+    } }catch(e){}
+  }
+  function applyTheme(){
+    const r=document.documentElement;
+    if(themeMode==='auto') r.removeAttribute('data-theme'); else r.setAttribute('data-theme',themeMode);
+    for(const k in APPS) setFrameTheme(APPS[k]);
+  }
+  function toggleTheme(){ themeMode = (effective()==='dark') ? 'light' : 'dark'; applyTheme(); }
+  document.getElementById('themeToggle').onclick=toggleTheme;
+  for(const k in APPS){ document.getElementById(APPS[k]).addEventListener('load',()=>setFrameTheme(APPS[k])); }
+  if(mq){ try{ mq.addEventListener('change',()=>{ if(themeMode==='auto') applyTheme(); }); }catch(e){} }
+  applyTheme();
   const seg=[...document.querySelectorAll('#seg button')];
   const back=document.getElementById('back'), hint=document.getElementById('hint');
   const shell=document.querySelector('header.shell'), bkTx=back.querySelector('.bk-tx');
