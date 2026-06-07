@@ -55,6 +55,11 @@
     .seg button{padding:7px 10px;font-size:12px;gap:0}
     .seg button .dot{display:none}
     .seg .xl{display:none}
+    #back{margin-left:auto;padding:7px 11px;font-size:13px}
+    #back .bk-tx{display:none}
+    /* When Back is showing, collapse the two non-current tabs to a dot so Back fits */
+    header.shell.has-back .seg button:not(.active){font-size:0;padding:7px 9px}
+    header.shell.has-back .seg button:not(.active) .dot{display:inline-block;width:8px;height:8px;opacity:.7}
   }
 </style>
 </head>
@@ -73,7 +78,7 @@
       <button data-app="proc" class="active"><span class="dot"></span>Procedures</button>
       <button data-app="peds"><span class="dot"></span>Peds<span class="xl">&nbsp;dosing</span></button>
     </div>
-    <button id="back" title="Return to where you jumped from">← Back</button>
+    <button id="back" title="Return to where you jumped from"><span class="bk-ar">←</span><span class="bk-tx"> Back</span></button>
     <span class="hint" id="hint">one bench · three references</span>
   </header>
   <div class="wrap">
@@ -85,6 +90,7 @@
   const APPS={preop:"if-preop",proc:"if-proc",peds:"if-peds"};
   const seg=[...document.querySelectorAll('#seg button')];
   const back=document.getElementById('back'), hint=document.getElementById('hint');
+  const shell=document.querySelector('header.shell'), bkTx=back.querySelector('.bk-tx');
   let cur='proc';
   function show(app){
     cur=app;
@@ -105,15 +111,15 @@
         ? 'procedures/index.html?j='+Date.now()+(target.hash?('#'+target.hash):'')
         : (target.app+'/index.html?j='+Date.now()+(target.hash?('#'+target.hash):''));
       show(target.app);
-      back.style.display='inline-flex'; hint.style.display='none';
-      back.textContent='← Back to '+(this.jumpStack[this.jumpStack.length-1].label);
+      back.style.display='inline-flex'; hint.style.display='none'; shell.classList.add('has-back');
+      bkTx.textContent=' Back to '+(this.jumpStack[this.jumpStack.length-1].label);
     }
   };
   back.onclick=()=>{
     const o=window.ORACLE.jumpStack.pop();
     if(o){ show(o.app); }
-    if(!window.ORACLE.jumpStack.length){ back.style.display='none'; hint.style.display='inline'; }
-    else back.textContent='← Back to '+window.ORACLE.jumpStack[window.ORACLE.jumpStack.length-1].label;
+    if(!window.ORACLE.jumpStack.length){ back.style.display='none'; hint.style.display=''; shell.classList.remove('has-back'); }
+    else bkTx.textContent=' Back to '+window.ORACLE.jumpStack[window.ORACLE.jumpStack.length-1].label;
   };
 </script>
 </body>
