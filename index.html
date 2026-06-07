@@ -43,23 +43,30 @@
   .wrap{flex:1 1 auto;position:relative;min-height:0}
   iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--paper)}
   iframe.hidden{display:none}
+  /* Per-app tool buttons hosted in the shell bar (mobile only) — proxy into the active app */
+  .apptools{display:none;align-items:center;gap:6px}
+  .apptools button{appearance:none;background:var(--paper);border:1px solid var(--line);border-radius:9px;
+    padding:6px 9px;cursor:pointer;color:var(--ink);display:flex;align-items:center;line-height:1}
+  .apptools button:active{background:var(--bg)}
+  .apptools svg{width:18px;height:18px;display:block;stroke:currentColor;fill:none;stroke-width:2}
   /* Phones: collapse the whole bar onto one line — drop decorative bits, shrink toggle */
   @media (max-width:640px){
-    header.shell{gap:9px;padding:6px 11px;min-height:0;flex-wrap:nowrap}
+    header.shell{gap:8px;padding:6px 10px;min-height:0;flex-wrap:nowrap}
     .brand{margin-right:2px}
     .brand .logo{width:25px;height:25px}
     .brand .nm{font-size:18px}
     .brand .sub{display:none}
     .hint{display:none}
-    .seg{flex:0 1 auto}
-    .seg button{padding:7px 10px;font-size:12px;gap:0}
-    .seg button .dot{display:none}
+    .seg{flex:0 0 auto}
+    .seg button{padding:7px 9px;font-size:12.5px;gap:0}
     .seg .xl{display:none}
-    #back{margin-left:auto;padding:7px 11px;font-size:13px}
+    /* collapse non-active tabs to a colored dot; active keeps its label */
+    .seg button:not(.active){font-size:0;padding:7px 8px}
+    .seg button:not(.active) .dot{display:inline-block;width:8px;height:8px;opacity:.75}
+    .seg button.active .dot{display:none}
+    #apptools{display:flex;margin-left:auto}
+    #back{padding:6px 9px;font-size:13px}
     #back .bk-tx{display:none}
-    /* When Back is showing, collapse the two non-current tabs to a dot so Back fits */
-    header.shell.has-back .seg button:not(.active){font-size:0;padding:7px 9px}
-    header.shell.has-back .seg button:not(.active) .dot{display:inline-block;width:8px;height:8px;opacity:.7}
   }
 </style>
 </head>
@@ -78,6 +85,7 @@
       <button data-app="proc" class="active"><span class="dot"></span>Procedures</button>
       <button data-app="peds"><span class="dot"></span>Peds<span class="xl">&nbsp;dosing</span></button>
     </div>
+    <div class="apptools" id="apptools"></div>
     <button id="back" title="Return to where you jumped from"><span class="bk-ar">←</span><span class="bk-tx"> Back</span></button>
     <span class="hint" id="hint">one bench · three references</span>
   </header>
@@ -96,7 +104,28 @@
     cur=app;
     for(const k in APPS) document.getElementById(APPS[k]).classList.toggle('hidden',k!==app);
     seg.forEach(b=>b.classList.toggle('active', b.dataset.app===app));
+    renderTools(app);
   }
+  // --- per-app tool icons in the shell bar; proxy into the active app's own (hidden) controls ---
+  const ICON={
+    menu:'<svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
+    search:'<svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>',
+    home:'<svg viewBox="0 0 24 24" stroke-linejoin="round" stroke-linecap="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9h5v-5h4v5h5v-9"/></svg>'
+  };
+  const apptools=document.getElementById('apptools');
+  function clickIn(targetId){
+    try{ const d=document.getElementById(APPS[cur]).contentDocument; const el=d&&d.getElementById(targetId); if(el) el.click(); }catch(e){}
+  }
+  function tool(label, icon, targetId){
+    const b=document.createElement('button'); b.type='button'; b.setAttribute('aria-label',label); b.title=label;
+    b.innerHTML=ICON[icon]; b.onclick=()=>clickIn(targetId); return b;
+  }
+  function renderTools(app){
+    apptools.innerHTML='';
+    if(app==='proc'){ apptools.appendChild(tool('Menu','menu','menuBtn')); }
+    else { apptools.appendChild(tool('Search','search','search-btn')); apptools.appendChild(tool('Home','home','home-btn')); }
+  }
+  renderTools(cur);
   seg.forEach(b=>b.onclick=()=>show(b.dataset.app));
   // --- global cross-app Back stack (used by xref.js once links are wired) ---
   window.ORACLE={
