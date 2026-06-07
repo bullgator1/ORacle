@@ -126,6 +126,7 @@
   .home-btn:active, .search-btn:active { background: var(--surface-2); }
   .search-btn, .home-btn { display: flex; align-items: center; gap: 4px; }
   /* Patient banner — always visible at top showing current age/weight */
+  .home-empty #pt-banner-host { display: none; }  /* …except the empty welcome, where inline fields are the prompt */
   .pt-banner {
     display: flex;
     align-items: center;
@@ -404,7 +405,7 @@
   .search-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.4);
+    background: rgba(0,0,0,0.6);
     z-index: 1000;
     display: none;
     align-items: flex-start;
@@ -413,7 +414,8 @@
   }
   .search-overlay.active { display: flex; }
   .search-panel {
-    background: var(--bg);
+    background: var(--surface);
+    border: 1px solid var(--border-2);
     border-radius: var(--radius-lg);
     width: 100%;
     max-width: 600px;
@@ -421,7 +423,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    box-shadow: 0 14px 50px rgba(0,0,0,0.6);
   }
   .search-header {
     display: flex;
@@ -432,7 +434,7 @@
   }
   .search-input {
     flex: 1;
-    background: var(--surface);
+    background: var(--bg);
     border: 0.5px solid var(--border-2);
     border-radius: var(--radius-sm);
     padding: 10px 12px;
@@ -805,6 +807,7 @@
   }
 
   function draw() {
+    document.body.classList.remove('home-empty');  // banner hidden only on the empty welcome (set by renderHome)
     renderPatientBanner();
     renderCrumbs();
     stage.innerHTML = '';
@@ -1249,7 +1252,12 @@
   function closeSearch() { searchOverlay.classList.remove('active'); }
   document.getElementById('search-btn').onclick = openSearch;
   document.getElementById('search-close').onclick = closeSearch;
-  document.getElementById('home-btn').onclick = goHome;
+  document.getElementById('home-btn').onclick = function(){ closeSearch(); goHome(); };
+  /* Hooks the ORacle shell calls — focus the field on search, and let Home work with search open */
+  window.ORACLE_TOOLS = {
+    search(){ openSearch(); searchInput.focus(); },
+    home(){ closeSearch(); goHome(); }
+  };
   searchOverlay.addEventListener('click', function(e) { if (e.target === searchOverlay) closeSearch(); });
   document.addEventListener('keydown', function(e) {
     if (e.key === '/' && document.activeElement.tagName !== 'INPUT') { e.preventDefault(); openSearch(); }
@@ -1353,10 +1361,25 @@
   function openPatientInput() {
     go('Patient', 'patient', renderPatientInput, true);
   }
-  function renderPatientInput() {
-    title('Patient', 'Enter age and weight. Real weight beats age estimate. Both fields are optional but at least one is needed.');
+  // Reusable age/weight entry fields + live estimate (used by the welcome home and the Patient step)
+  function buildPatientFields(container) {
     const form = el('div');
-    // Age row — months OR years
+    const est = el('div'); est.id = '__est_disp';
+    function renderEst() {
+      const w = calcWeight();
+      const ew = estimatedWeight();
+      const wTyped = (patient.weightKg != null && patient.weightKg !== '') || (patient.weightLb != null && patient.weightLb !== '');
+      let html = '';
+      if (ew != null) {
+        html += '<div class="note info"><strong>Age-based estimate:</strong> ' + roundMg(ew) + ' kg<br><span style="font-size:11px;opacity:0.8">APLS/Luscombe formula. Used only if no weight is entered.</span></div>';
+      }
+      if (w != null) {
+        const lb = w * 2.2;
+        const used = wTyped ? 'typed weight' : 'age estimate';
+        html += '<div class="note success"><strong>Active weight:</strong> ' + roundMg(w) + ' kg (' + roundMg(lb) + ' lb)<br><span style="font-size:11px;opacity:0.8">Source: ' + used + '. All doses use this.</span></div>';
+      }
+      est.innerHTML = html;
+    }
     function input(labelText, key, unit, type) {
       const row = el('div', 'input-row');
       row.appendChild(el('label', null, labelText));
@@ -1369,7 +1392,6 @@
       inp.addEventListener('input', function() {
         const v = inp.value.trim();
         patient[key] = (v === '' ? null : Number(v));
-        // Clear sibling if user typed in one of the paired fields
         if (key === 'ageMonths' && v !== '') patient.ageYears = null;
         if (key === 'ageYears' && v !== '') patient.ageMonths = null;
         if (key === 'weightKg' && v !== '') patient.weightLb = null;
@@ -1387,34 +1409,16 @@
     input('Age — years', 'ageYears', 'yr (use for ≥2yr)');
     input('Weight — kg', 'weightKg', 'kg (preferred)');
     input('Weight — lb', 'weightLb', 'lb');
-    stage.appendChild(form);
-
-    const est = el('div');
-    est.id = '__est_disp';
-    stage.appendChild(est);
-    function renderEst() {
-      const w = calcWeight();
-      const ew = estimatedWeight();
-      const wTyped = (patient.weightKg != null && patient.weightKg !== '') || (patient.weightLb != null && patient.weightLb !== '');
-      let html = '';
-      if (ew != null) {
-        html += '<div class="note info"><strong>Age-based estimate:</strong> ' + roundMg(ew) + ' kg<br><span style="font-size:11px;opacity:0.8">APLS/Luscombe formula. Used only if no weight is entered.</span></div>';
-      }
-      if (w != null) {
-        const lb = w * 2.2;
-        const used = wTyped ? 'typed weight' : 'age estimate';
-        html += '<div class="note success"><strong>Active weight:</strong> ' + roundMg(w) + ' kg (' + roundMg(lb) + ' lb)<br><span style="font-size:11px;opacity:0.8">Source: ' + used + '. All doses use this.</span></div>';
-      }
-      est.innerHTML = html;
-    }
+    container.appendChild(form);
+    container.appendChild(est);
     renderEst();
-
+  }
+  function renderPatientInput() {
+    title('Patient', 'Enter age and weight. Real weight beats age estimate. Both fields are optional but at least one is needed.');
+    buildPatientFields(stage);
     const done = el('button', 'btn-primary', 'Done');
     done.onclick = function() {
-      if (!hasAnyPatient()) {
-        alert('Enter at least an age or a weight.');
-        return;
-      }
+      if (!hasAnyPatient()) { alert('Enter at least an age or a weight.'); return; }
       goHome();
     };
     stage.appendChild(done);
@@ -1429,10 +1433,15 @@
   // ============ HOME ============
   function renderHome() {
     if (!hasAnyPatient()) {
-      title('Welcome', 'Start by entering the patient\'s age and/or weight. Everything downstream uses these.');
-      const enter = el('button', 'btn-primary', 'Enter age & weight');
-      enter.onclick = openPatientInput;
-      stage.appendChild(enter);
+      document.body.classList.add('home-empty');  // hide the redundant top banner — the fields below are the single prompt
+      title('Welcome', 'Enter age and/or weight to begin — everything downstream uses these.');
+      buildPatientFields(stage);
+      const done = el('button', 'btn-primary', 'Done →');
+      done.onclick = function() {
+        if (!hasAnyPatient()) { alert('Enter at least an age or a weight.'); return; }
+        goHome();
+      };
+      stage.appendChild(done);
       stage.appendChild(el('div', 'note', '<strong>Tip:</strong> If you only have an age, the APLS/Luscombe formula will estimate weight as a fallback (<12mo: 0.5·mo+4 · 12–24mo: 2·yr+8 · 1–5yr: 2·yr+8 · >5yr: 3·yr+7). Doses still calculate — flagged as estimated.'));
       stage.appendChild(el('div', 'divider', 'Reference (no patient needed)'));
       optGrid([
