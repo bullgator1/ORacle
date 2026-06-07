@@ -31,6 +31,7 @@
   .brand .nm b{color:var(--oxblood);font-weight:600}
   .brand .sub{font-family:"IBM Plex Mono",monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);margin-top:2px}
   .seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--bg)}
+  .seg .ls{display:none}   /* short labels: shown only for inactive tabs on phones */
   .seg button{appearance:none;border:0;background:transparent;cursor:pointer;font-family:"IBM Plex Sans";
     font-size:13.5px;font-weight:600;color:var(--ink-faint);padding:8px 16px;display:flex;align-items:center;gap:7px}
   .seg button .dot{width:7px;height:7px;border-radius:50%;opacity:.5}
@@ -64,12 +65,13 @@
     .brand .sub{display:none}
     .hint{display:none}
     .seg{flex:0 0 auto}
-    .seg button{padding:7px 9px;font-size:12.5px;gap:0}
-    .seg .xl{display:none}
-    /* collapse non-active tabs to a colored dot; active keeps its label */
-    .seg button:not(.active){font-size:0;padding:7px 8px}
-    .seg button:not(.active) .dot{display:inline-block;width:8px;height:8px;opacity:.75}
-    .seg button.active .dot{display:none}
+    .seg button{padding:7px 8px;font-size:11.5px;gap:0}
+    .seg button .dot{display:none}
+    /* active tab = full name; the other two = short labels */
+    .seg button .lf{display:none}
+    .seg button .ls{display:inline}
+    .seg button.active .lf{display:inline}
+    .seg button.active .ls{display:none}
     #apptools{display:flex;margin-left:auto}
     #back{padding:6px 9px;font-size:13px}
     #back .bk-tx{display:none}
@@ -91,9 +93,9 @@
       <div class="txt"><span class="nm">OR<b>acle</b></span><span class="sub">Anesthesia · Perioperative</span></div>
     </div>
     <div class="seg" id="seg">
-      <button data-app="preop"><span class="dot"></span>Pre-op</button>
-      <button data-app="proc" class="active"><span class="dot"></span>Procedures</button>
-      <button data-app="peds"><span class="dot"></span>Peds<span class="xl">&nbsp;dosing</span></button>
+      <button data-app="preop"><span class="dot"></span><span class="lf">Pre-op</span><span class="ls">Pre-op</span></button>
+      <button data-app="proc" class="active"><span class="dot"></span><span class="lf">Procedures</span><span class="ls">Procs</span></button>
+      <button data-app="peds"><span class="dot"></span><span class="lf">Peds dosing</span><span class="ls">Peds</span></button>
     </div>
     <div class="apptools" id="apptools"></div>
     <button id="back" title="Return to where you jumped from"><span class="bk-ar">←</span><span class="bk-tx"> Back</span></button>
@@ -138,7 +140,6 @@
   }
   // --- per-app tool icons in the shell bar; proxy into the active app's own (hidden) controls ---
   const ICON={
-    menu:'<svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
     search:'<svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>',
     home:'<svg viewBox="0 0 24 24" stroke-linejoin="round" stroke-linecap="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9h5v-5h4v5h5v-9"/></svg>'
   };
@@ -146,14 +147,21 @@
   function clickIn(targetId){
     try{ const d=document.getElementById(APPS[cur]).contentDocument; const el=d&&d.getElementById(targetId); if(el) el.click(); }catch(e){}
   }
-  function tool(label, icon, targetId){
+  // Uniform tool proxy: prefer the app's ORACLE_TOOLS hook (handles focus + closing overlays),
+  // fall back to clicking the app's own header button.
+  function callTool(method){
+    try{ const w=document.getElementById(APPS[cur]).contentWindow;
+      if(w&&w.ORACLE_TOOLS&&typeof w.ORACLE_TOOLS[method]==='function'){ w.ORACLE_TOOLS[method](); return; } }catch(e){}
+    clickIn(method==='search'?'search-btn':'home-btn');
+  }
+  function tool(label, icon, onClick){
     const b=document.createElement('button'); b.type='button'; b.setAttribute('aria-label',label); b.title=label;
-    b.innerHTML=ICON[icon]; b.onclick=()=>clickIn(targetId); return b;
+    b.innerHTML=ICON[icon]; b.onclick=onClick; return b;
   }
   function renderTools(app){
     apptools.innerHTML='';
-    if(app==='proc'){ apptools.appendChild(tool('Menu','menu','menuBtn')); }
-    else { apptools.appendChild(tool('Search','search','search-btn')); apptools.appendChild(tool('Home','home','home-btn')); }
+    apptools.appendChild(tool('Search','search',()=>callTool('search')));
+    apptools.appendChild(tool('Home','home',()=>callTool('home')));
   }
   renderTools(cur);
   seg.forEach(b=>b.onclick=()=>show(b.dataset.app));
