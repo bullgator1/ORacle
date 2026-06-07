@@ -493,6 +493,8 @@
     0% { box-shadow: 0 0 0 3px rgba(24, 95, 165, 0.5); }
     100% { box-shadow: 0 0 0 3px rgba(24, 95, 165, 0); }
   }
+  /* Inside ORacle on phones, the shell bar hosts search/home — drop our own header */
+  @media (max-width: 640px){ header { display: none; } }
 </style>
 <script>window.__ORACLE_APP='preop';</script>
 <script src="../xref.js"></script>
