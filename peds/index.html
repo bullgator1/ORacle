@@ -438,12 +438,15 @@
     border: 0.5px solid var(--border-2);
     border-radius: var(--radius-sm);
     padding: 10px 12px;
-    font-size: 15px;
+    font-size: 16px;   /* 16px stops iOS from auto-zooming on focus */
     font-family: inherit;
     color: var(--text);
     outline: none;
   }
   .search-input:focus { border-color: var(--accent); }
+  /* dark mode: tint the field blue so it clearly reads as a box over the near-black page */
+  :root[data-theme="dark"] .search-input { background: #16263f; border-color: #3a6ea5; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme]) .search-input { background: #16263f; border-color: #3a6ea5; } }
   .search-close {
     background: transparent;
     border: 0.5px solid var(--border-2);
