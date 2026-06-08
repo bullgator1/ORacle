@@ -53,7 +53,7 @@
   /* Per-app tool buttons hosted in the shell bar (mobile only) — proxy into the active app */
   .apptools{display:none;align-items:center;gap:6px}
   .apptools button{appearance:none;background:var(--paper);border:1px solid var(--line);border-radius:9px;
-    padding:6px 9px;cursor:pointer;color:var(--ink);display:flex;align-items:center;line-height:1}
+    padding:8px;min-width:40px;min-height:40px;cursor:pointer;color:var(--ink);display:flex;align-items:center;justify-content:center;line-height:1}
   .apptools button:active{background:var(--bg)}
   .apptools svg{width:18px;height:18px;display:block;stroke:currentColor;fill:none;stroke-width:2}
   /* Phones: collapse the whole bar onto one line — drop decorative bits, shrink toggle */
@@ -73,7 +73,7 @@
     .seg button.active .lf{display:inline}
     .seg button.active .ls{display:none}
     #apptools{display:flex;margin-left:auto}
-    #back{padding:6px 9px;font-size:13px}
+    #back{padding:8px 11px;font-size:13px;min-height:40px}
     #back .bk-tx{display:none}
   }
 </style>
@@ -164,19 +164,39 @@
     apptools.appendChild(tool('Home','home',()=>callTool('home')));
   }
   renderTools(cur);
-  seg.forEach(b=>b.onclick=()=>show(b.dataset.app));
+  seg.forEach(b=>b.onclick=()=>{
+    const app=b.dataset.app;
+    if(app===cur){ // re-tap the current tab → reset that app to its home view (fresh case)
+      try{ const w=document.getElementById(APPS[app]).contentWindow; if(w&&w.ORACLE_TOOLS&&w.ORACLE_TOOLS.home) w.ORACLE_TOOLS.home(); }catch(e){}
+    } else { show(app); }
+  });
   // --- global cross-app Back stack (used by xref.js once links are wired) ---
   window.ORACLE={
     show,
     jumpStack:[],
-    // navigate to {app, hash}; remember origin for Back
+    // navigate to {app, hash}; remember origin for Back.
+    // All three iframes are preloaded and kept warm, so we navigate the target IN PLACE
+    // (no reload → no flicker, and the app keeps its state). We only reload as a fallback
+    // if the frame somehow isn't ready yet.
     jump(target, originLabel){
       this.jumpStack.push({app:cur, label:originLabel||cur});
-      const id=APPS[target.app];
-      const fr=document.getElementById(id);
-      fr.src = target.app==='proc'
-        ? 'procedures/index.html?j='+Date.now()+(target.hash?('#'+target.hash):'')
-        : (target.app+'/index.html?j='+Date.now()+(target.hash?('#'+target.hash):''));
+      const fr=document.getElementById(APPS[target.app]);
+      const go=()=>{
+        try{
+          const w=fr.contentWindow;
+          if(!target.hash) return;
+          if(target.app==='proc'){ if(w && typeof w.selectProcedure==='function') w.selectProcedure(target.hash); }
+          else { if(w && typeof w.ORACLE_GOTO==='function') w.ORACLE_GOTO(target.hash); }
+        }catch(e){}
+      };
+      const ready = fr.contentWindow && fr.contentDocument && fr.contentDocument.readyState==='complete'
+        && (fr.contentWindow.selectProcedure || fr.contentWindow.ORACLE_GOTO || !target.hash);
+      if(ready){ go(); }
+      else {
+        // fallback: frame not loaded yet — load once, then navigate on load
+        fr.addEventListener('load', function onl(){ fr.removeEventListener('load', onl); go(); });
+        if(!fr.getAttribute('src')) fr.src = target.app+'/index.html';
+      }
       show(target.app);
       back.style.display='inline-flex'; hint.style.display='none'; shell.classList.add('has-back');
       bkTx.textContent=' Back to '+(this.jumpStack[this.jumpStack.length-1].label);
