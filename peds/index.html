@@ -1628,8 +1628,9 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     sectionHead('Pre-op analgesia');
     drug({ name: 'Acetaminophen', dose: '15 mg/kg PO/IV q6h', sub: 'Loading dose', perKg: 15, cap: 1000, conc: 'acetaminophen_iv',
       src: 'Adult max single 1000 mg. Same dose PO or IV.' });
-    drug({ name: 'Acetaminophen', dose: '40 mg/kg PR', sub: 'Single PR loading dose', perKg: 40,
-      src: 'Higher PR dose due to variable absorption. Uncapped per institutional practice in <50 kg patients.' });
+    drug({ name: 'Acetaminophen', dose: '40 mg/kg PR', sub: 'Single PR loading dose', perKg: 40, cap: 1000,
+      src: 'Higher PR dose for variable absorption. Per-dose cap 1000 mg; mind the 75 mg/kg or 4 g/24h total.' });
+    note('<strong>Acetaminophen 24-h max:</strong> the lesser of 75 mg/kg or 4 g — all routes (PO/IV/PR) combined.', 'warn');
     drug({ name: 'Ibuprofen', dose: '10 mg/kg PO', perKg: 10, cap: 400,
       src: 'q6h. Avoid in renal/bleeding concerns.' });
   }
@@ -1752,8 +1753,9 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     drug({ name: 'Acetaminophen', dose: '15 mg/kg IV/PO q6h', perKg: 15, cap: 1000, conc: 'acetaminophen_iv',
       src: 'Adult max single 1000 mg. Daily max 75 mg/kg or 4 g.' });
     drug({ name: 'Acetaminophen', dose: '12.5 mg/kg IV q4h', sub: 'Scheduled q4h', perKg: 12.5, cap: 1000, conc: 'acetaminophen_iv' });
-    drug({ name: 'Acetaminophen', dose: '40 mg/kg PR', sub: 'Single loading dose', perKg: 40,
-      src: 'Higher PR dose for variable absorption. Single dose only — don\'t repeat.' });
+    drug({ name: 'Acetaminophen', dose: '40 mg/kg PR', sub: 'Single loading dose', perKg: 40, cap: 1000,
+      src: 'Higher PR dose for variable absorption. Per-dose cap 1000 mg; single dose only — don\'t repeat.' });
+    note('<strong>Acetaminophen 24-h max:</strong> the lesser of 75 mg/kg or 4 g — all routes (PO/IV/PR) combined.', 'warn');
     drug({ name: 'Toradol (ketorolac)', dose: '0.5 mg/kg IV', sub: 'Cap 15 mg single', perKg: 0.5, cap: 15, conc: 'toradol',
       src: 'Evidence (Motov 2017, Duttchen 2017, Drwiega 2023): 15 mg IV equianalgesic to 30 mg with theoretically lower bleeding risk. FDA labels 30 mg for adults <65 / ≥50 kg; 15 mg is clinician choice supported by evidence.' });
     drug({ name: 'Ibuprofen', dose: '10 mg/kg PO', sub: 'q6h', perKg: 10, cap: 400 });
@@ -1767,8 +1769,8 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     titleWithFav('Antiemetics', 'PONV prophylaxis + rescue.', 'cat-antiemetics');
     drug({ name: 'Ondansetron', dose: '0.15 mg/kg IV', sub: 'PONV prophylaxis, end of case', perKg: 0.15, cap: 4, conc: 'ondansetron',
       src: 'Cap 4 mg. QT prolongation — caution with other QT-prolonging agents.' });
-    drug({ name: 'Dexamethasone', dose: '0.5 mg/kg IV', sub: 'PONV prophylaxis, after induction', perKg: 0.5, cap: 8, conc: 'dexamethasone',
-      src: 'Cap 8 mg for PONV. Onset slow — give early.' });
+    drug({ name: 'Dexamethasone', dose: '0.15 mg/kg IV', sub: 'PONV prophylaxis, after induction', perKg: 0.15, cap: 4, conc: 'dexamethasone',
+      src: 'PONV: 0.15 mg/kg, cap 4 mg (2020 Fourth Consensus PONV guidelines). Onset slow — give early.' });
     drug({ name: 'Droperidol', dose: '0.03 mg/kg IV', sub: 'Rescue / refractory PONV', perKg: 0.03, cap: 1.25, conc: 'droperidol',
       src: 'FDA black box for QT. Use with monitoring. Effective rescue.' });
     drug({ name: 'Metoclopramide', dose: '0.1 mg/kg IV', sub: 'Less effective than 5-HT3 antagonists', perKg: 0.1, cap: 10, conc: 'metoclopramide' });
@@ -1786,11 +1788,11 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
 
     sectionHead('Vasopressors');
     drug({ name: 'Ephedrine', dose: '0.2 mg/kg IV', sub: 'Indirect — ↑HR & ↑BP', perKg: 0.2, cap: 25, conc: 'ephedrine' });
-    drug({ name: 'Phenylephrine', dose: '1–10 mcg/kg IV', sub: 'Pure α — pressor without inotropy', perKgLow: 1, perKgHigh: 10, unit: 'mcg', conc: 'phenylephrine',
+    drug({ name: 'Phenylephrine', dose: '1–10 mcg/kg IV', sub: 'Pure α — pressor without inotropy', perKgLow: 1, perKgHigh: 10, cap: 200, unit: 'mcg', conc: 'phenylephrine',
       src: 'Reflex bradycardia. Use cautiously in pts where you need preserved HR.' });
 
     sectionHead('β-blockers');
-    drug({ name: 'Labetalol', dose: '0.5 mg/kg IV', sub: 'Mixed α/β — for HTN', perKg: 0.5, cap: 20, conc: 'labetalol' });
+    drug({ name: 'Labetalol', dose: '0.1–0.4 mg/kg IV', sub: 'Mixed α/β — for HTN', perKgLow: 0.1, perKgHigh: 0.4, cap: 20, conc: 'labetalol' });
     drug({ name: 'Esmolol', dose: '0.1–0.5 mg/kg IV', sub: 'Ultra-short β — for HR control', perKgLow: 0.1, perKgHigh: 0.5, cap: 100, conc: 'esmolol' });
 
     sectionHead('Epinephrine');
@@ -1802,7 +1804,7 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
       src: 'Repeat q5–15 min PRN. Max 0.5 mg single (adult max).' });
 
     sectionHead('Calcium');
-    drug({ name: 'Calcium chloride', dose: '10–20 mg/kg IV', sub: 'Central line preferred', perKgLow: 10, perKgHigh: 20, cap: 2000, conc: 'CaCl',
+    drug({ name: 'Calcium chloride', dose: '10–20 mg/kg IV', sub: 'Central line preferred', perKgLow: 10, perKgHigh: 20, cap: 1000, conc: 'CaCl',
       src: 'For hyperK, hypoCa, CCB OD, hyperMg. 3x more elemental Ca than gluconate. Sclerosing — extravasation = necrosis.' });
     drug({ name: 'Calcium gluconate', dose: '30–60 mg/kg IV', sub: 'Peripheral OK', perKgLow: 30, perKgHigh: 60, cap: 3000, conc: 'CaGluc',
       src: 'Less sclerosing. Preferred if no central access.' });
@@ -1834,7 +1836,7 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
   function renderHemodynamic() {
     titleWithFav('Hemodynamic meds', 'Bolus doses for BP/HR control. See infusions for continuous.', 'cat-hemodynamic');
     drug({ name: 'Ephedrine', dose: '0.1–0.3 mg/kg IV', sub: 'Indirect — ↑BP + ↑HR', perKgLow: 0.1, perKgHigh: 0.3, cap: 25, conc: 'ephedrine' });
-    drug({ name: 'Phenylephrine', dose: '1–10 mcg/kg IV', sub: 'Pure α — ↑BP, reflex ↓HR', perKgLow: 1, perKgHigh: 10, unit: 'mcg', conc: 'phenylephrine' });
+    drug({ name: 'Phenylephrine', dose: '1–10 mcg/kg IV', sub: 'Pure α — ↑BP, reflex ↓HR', perKgLow: 1, perKgHigh: 10, cap: 200, unit: 'mcg', conc: 'phenylephrine' });
     drug({ name: 'Labetalol', dose: '0.1–0.4 mg/kg IV', sub: 'Mixed α/β — for HTN', perKgLow: 0.1, perKgHigh: 0.4, cap: 20, conc: 'labetalol' });
     drug({ name: 'Esmolol', dose: '0.1–0.5 mg/kg IV', sub: 'Ultra-short β — for HR/BP', perKgLow: 0.1, perKgHigh: 0.5, cap: 100, conc: 'esmolol' });
     drug({ name: 'Furosemide', dose: '0.5–1 mg/kg IV', sub: 'Diuretic', perKgLow: 0.5, perKgHigh: 1, cap: 40, conc: 'furosemide' });
@@ -1983,7 +1985,7 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     drug({ name: 'Magnesium sulfate', dose: '25–50 mg/kg IV', sub: 'Torsades, hypoMg', perKgLow: 25, perKgHigh: 50, cap: 2000, conc: 'magnesium_sulfate' });
 
     sectionHead('Volume / metabolic');
-    drug({ name: 'Calcium chloride', dose: '20 mg/kg IV', sub: 'HyperK, hypoCa, CCB OD', perKg: 20, cap: 2000, conc: 'CaCl' });
+    drug({ name: 'Calcium chloride', dose: '20 mg/kg IV', sub: 'HyperK, hypoCa, CCB OD', perKg: 20, cap: 1000, conc: 'CaCl' });
     drug({ name: 'Calcium gluconate', dose: '30–60 mg/kg IV', sub: 'Peripheral OK', perKgLow: 30, perKgHigh: 60, cap: 3000, conc: 'CaGluc' });
     drug({ name: 'Sodium bicarbonate', dose: '1 mEq/kg IV', sub: 'Severe acidosis, hyperK, TCA OD — NOT routine in arrest', perKg: 1, cap: 50, unit: 'mEq' });
     drug({ name: 'D10W', dose: '5 mL/kg', sub: 'Hypoglycemia (glucose <60)', custom: function() { const w = calcWeight(); return w == null ? '—' : capN(Math.round(w * 5), 250) + ' mL' + capTag(Math.round(w * 5), 250); }(),
@@ -2014,7 +2016,7 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     sectionHead('Adjuncts (do not delay epi for these)');
     drug({ name: 'Hydrocortisone', dose: '2 mg/kg IV', sub: 'Slow onset — for biphasic prevention', perKg: 2, cap: 100, conc: 'hydrocortisone' });
     drug({ name: 'Diphenhydramine', dose: '1 mg/kg IV', sub: 'H1 — for urticaria', perKg: 1, cap: 50, conc: 'diphenhydramine' });
-    drug({ name: 'Ranitidine/famotidine', dose: '0.25 mg/kg IV', sub: 'H2 blocker', perKg: 0.25 });
+    drug({ name: 'Famotidine', dose: '0.25 mg/kg IV', sub: 'H2 blocker', perKg: 0.25, cap: 20 });
     drug({ name: 'Albuterol', dose: '4–8 puffs via spacer/ETT', sub: 'Bronchospasm', custom: '4–8 puffs' });
     drug({ name: 'Methylene blue', dose: '1–2 mg/kg IV', sub: 'Refractory vasoplegia', perKgLow: 1, perKgHigh: 2, cap: 100,
       src: 'Reserve for cases unresponsive to epi + fluid. Causes blue urine, transient SpO2 drop.' });
@@ -2055,14 +2057,14 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     note('Cold IV fluids (4°C NS); ice packs to axillae/groin/neck; cold gastric/bladder lavage; remove drapes. Stop cooling at 38°C to avoid overshoot.', 'info');
 
     sectionHead('Hyperkalemia (treat aggressively)');
-    drug({ name: 'Calcium chloride', dose: '10–20 mg/kg IV', sub: 'Membrane stabilization', perKgLow: 10, perKgHigh: 20, cap: 2000, conc: 'CaCl' });
+    drug({ name: 'Calcium chloride', dose: '10–20 mg/kg IV', sub: 'Membrane stabilization', perKgLow: 10, perKgHigh: 20, cap: 1000, conc: 'CaCl' });
     drug({ name: 'Insulin + glucose', dose: '0.1 U/kg insulin + 0.5 g/kg dextrose', sub: 'Shift K+ into cells', custom: function() { const w = calcWeight(); return w == null ? '—' : capN(roundMg(w * 0.1), 10) + ' U + ' + capN(roundMg(w * 0.5), 25) + ' g' + (roundMg(w * 0.1) > 10 || roundMg(w * 0.5) > 25 ? ' (adult max)' : ''); }() });
     drug({ name: 'Sodium bicarbonate', dose: '1–2 mEq/kg IV', sub: 'Acidosis + K+ shift', perKgLow: 1, perKgHigh: 2, cap: 50, unit: 'mEq' });
     drug({ name: 'Albuterol', dose: '4–8 puffs', sub: 'β2 K+ shift', custom: '4–8 puffs' });
 
     sectionHead('Other');
     drug({ name: 'Furosemide', dose: '0.5–1 mg/kg IV', sub: 'Promote myoglobin clearance', perKgLow: 0.5, perKgHigh: 1, cap: 40, conc: 'furosemide' });
-    drug({ name: 'Mannitol', dose: '0.5 g/kg IV', sub: 'Osmotic diuresis', perKg: 0.5 });
+    drug({ name: 'Mannitol', dose: '0.5 g/kg IV', sub: 'Osmotic diuresis', perKg: 0.5, unit: 'g' });
     note('Send labs: ABG, K+, lactate, CK, myoglobin, coags. Insert arterial line + Foley. Transfer to ICU for at least 24h post-event (recrudescence risk).', 'info');
   }
   registerStep('em-mh', 'Malignant hyperthermia', renderMH, ['Home', 'Scenarios']);
@@ -2475,7 +2477,7 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
 
     sectionHead('5 — PONV prophylaxis');
     drug({ name: 'Ondansetron', dose: '0.15 mg/kg IV', sub: 'End of case', perKg: 0.15, cap: 4, conc: 'ondansetron' });
-    drug({ name: 'Dexamethasone', dose: '0.15 mg/kg IV', sub: 'After induction', perKg: 0.15, cap: 8, conc: 'dexamethasone' });
+    drug({ name: 'Dexamethasone', dose: '0.15 mg/kg IV', sub: 'After induction', perKg: 0.15, cap: 4, conc: 'dexamethasone' });
 
     sectionHead('6 — Reversal (end of case)');
     drug({ name: 'Sugammadex', dose: '2 mg/kg IV', sub: 'Routine reversal (TOF ≥2)', perKg: 2, conc: 'sugammadex' });
@@ -2534,7 +2536,7 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     let succDose = 1;
     if (m != null && m < 6) succDose = 3;
     else if (m != null && m < 24) succDose = 2;
-    drug({ name: 'Succinylcholine', dose: '<6mo: 3 · <2yr: 2 · ≥2yr: 1 mg/kg', sub: 'If no contraindication', perKg: succDose, cap: 150, conc: 'succinylcholine' });
+    drug({ name: 'Succinylcholine', dose: '<6mo: 3 · <2yr: 2 · ≥2yr: 1 mg/kg', sub: 'RSI — high end of the FDA age bands for rapid, complete block', perKg: succDose, cap: 150, conc: 'succinylcholine' });
     if (m == null) note('⚠ <strong>No age entered.</strong> The calculated succ dose above uses the ≥2 yr ratio (1 mg/kg). Infants need more — &lt;6 mo: 3 mg/kg · 6–24 mo: 2 mg/kg. Enter age for a correct calculated value.', 'warn');
 
     note('In a child who can\'t be preoxygenated or with severe hypoxia risk, modified RSI with gentle mask ventilation (pressure <12 cm H2O) is preferred over apnea.', 'warn');
@@ -3063,7 +3065,7 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
       ['Diphenhydramine', '50 mg', 'Adult typical max'],
       ['Hydroxyzine', '50 mg', 'Adult typical max'],
       ['Naloxone (reversal)', '0.4 mg titrated', 'Goal RR, not full reversal'],
-      ['Calcium chloride', '2000 mg single', 'Adult max'],
+      ['Calcium chloride', '1000 mg single', 'Adult max'],
       ['Calcium gluconate', '3000 mg single', 'Adult max'],
       ['Magnesium sulfate', '2000 mg single', 'Adult typical max'],
       ['Defibrillation', '10 J/kg or 200 J adult', 'Whichever is lower'],
