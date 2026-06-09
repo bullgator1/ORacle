@@ -208,6 +208,10 @@
     if(!window.ORACLE.jumpStack.length){ back.style.display='none'; hint.style.display=''; shell.classList.remove('has-back'); }
     else bkTx.textContent=' Back to '+window.ORACLE.jumpStack[window.ORACLE.jumpStack.length-1].label;
   };
+  // Offline support: register the root service worker (scope covers all three app iframes).
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+  }
 </script>
 </body>
 </html>
