@@ -731,6 +731,18 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     var l = capN(lo, cap), h = capN(hi, cap);
     return (l === h ? ('' + h) : (l + '–' + h)) + ' ' + unit + capTag(hi, cap);
   }
+  // Blood-product display: capped mL volume + an "(≈ N units/pools)" equivalent, shown only
+  // once the high end reaches ≥1 unit (below that, just mL). label = 'u' or 'pools'.
+  function capRangeU(lo, hi, capMl, mlPerUnit, label) {
+    var l = capN(lo, capMl), h = capN(hi, capMl);
+    var mlStr = (l === h ? ('' + h) : (l + '–' + h)) + ' mL';
+    var ul = l / mlPerUnit, uh = h / mlPerUnit;
+    var fmt = function(x){ return x >= 10 ? ('' + Math.round(x)) : ('' + (Math.round(x * 10) / 10)); };
+    var parts = [];
+    if (uh >= 1) parts.push('≈ ' + (Math.round(ul * 10) === Math.round(uh * 10) ? fmt(uh) : (fmt(ul) + '–' + fmt(uh))) + ' ' + label);
+    if (hi > capMl) parts.push('adult max');
+    return mlStr + (parts.length ? ' (' + parts.join(', ') + ')' : '');
+  }
   // mL given mg and concentration (mg/mL)
   function mgToMl(mg, conc) {
     if (mg == null || conc == null || conc === 0) return null;
@@ -2348,10 +2360,10 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     drug({ name: 'EBV', dose: ebvLabel, custom: (ebvPerKg == null || w == null) ? '—' : Math.round(w * ebvPerKg) + ' mL' });
 
     sectionHead('Transfusion');
-    drug({ name: 'Packed RBCs', dose: '10–15 mL/kg', sub: '↑ Hgb 2–3 g/dL', custom: w == null ? '—' : capRange(Math.round(w * 10), Math.round(w * 15), 700, 'mL') });
-    drug({ name: 'Platelets', dose: '5–10 mL/kg', sub: '↑ plt 50–100k', custom: w == null ? '—' : capRange(Math.round(w * 5), Math.round(w * 10), 300, 'mL') });
-    drug({ name: 'Fresh frozen plasma', dose: '10–15 mL/kg', sub: 'Factor levels ↑ 15–20%', custom: w == null ? '—' : capRange(Math.round(w * 10), Math.round(w * 15), 500, 'mL') });
-    drug({ name: 'Cryoprecipitate', dose: '1–2 units/kg', sub: 'Fibrinogen ↑ 60–100 mg/dL', custom: w == null ? '—' : capRange(Math.round(w * 1), Math.round(w * 2), 10, 'units') });
+    drug({ name: 'Packed RBCs', dose: '10–15 mL/kg', sub: '↑ Hgb 2–3 g/dL', custom: w == null ? '—' : capRangeU(Math.round(w * 10), Math.round(w * 15), 700, 350, 'u') });
+    drug({ name: 'Platelets', dose: '5–10 mL/kg', sub: '↑ plt 50–100k', custom: w == null ? '—' : capRangeU(Math.round(w * 5), Math.round(w * 10), 300, 300, 'u') });
+    drug({ name: 'Fresh frozen plasma', dose: '10–15 mL/kg', sub: 'Factor levels ↑ 15–20%', custom: w == null ? '—' : capRangeU(Math.round(w * 10), Math.round(w * 15), 500, 250, 'u') });
+    drug({ name: 'Cryoprecipitate', dose: '5–10 mL/kg', sub: 'Fibrinogen ↑ 60–100 mg/dL', custom: w == null ? '—' : capRangeU(Math.round(w * 5), Math.round(w * 10), 200, 100, 'pools') });
   }
   registerStep('eq-fluids', 'Fluids & blood', renderFluids, ['Home', 'Equipment']);
 
@@ -2777,10 +2789,10 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
       custom: ebv == null ? '—' : Math.round(ebv) + ' mL (50% = ' + Math.round(ebv/2) + ' mL)' });
 
     sectionHead('Components (per dose)');
-    drug({ name: 'Packed RBC', dose: '10–15 mL/kg', sub: '↑ Hgb 2–3 g/dL', custom: w == null ? '—' : capRange(Math.round(w*10), Math.round(w*15), 700, 'mL') });
-    drug({ name: 'FFP', dose: '10–15 mL/kg', sub: '↑ factors 15–20%; goal INR <1.5', custom: w == null ? '—' : capRange(Math.round(w*10), Math.round(w*15), 500, 'mL') });
-    drug({ name: 'Platelets', dose: '5–10 mL/kg', sub: '↑ plt 50–100k; goal >50k (or >100k if intracranial/spinal)', custom: w == null ? '—' : capRange(Math.round(w*5), Math.round(w*10), 300, 'mL') });
-    drug({ name: 'Cryoprecipitate', dose: '1–2 units/kg', sub: '↑ fibrinogen 60–100 mg/dL; goal >150–200', custom: w == null ? '—' : capRange(Math.round(w*1), Math.round(w*2), 10, 'units') });
+    drug({ name: 'Packed RBC', dose: '10–15 mL/kg', sub: '↑ Hgb 2–3 g/dL', custom: w == null ? '—' : capRangeU(Math.round(w*10), Math.round(w*15), 700, 350, 'u') });
+    drug({ name: 'FFP', dose: '10–15 mL/kg', sub: '↑ factors 15–20%; goal INR <1.5', custom: w == null ? '—' : capRangeU(Math.round(w*10), Math.round(w*15), 500, 250, 'u') });
+    drug({ name: 'Platelets', dose: '5–10 mL/kg', sub: '↑ plt 50–100k; goal >50k (or >100k if intracranial/spinal)', custom: w == null ? '—' : capRangeU(Math.round(w*5), Math.round(w*10), 300, 300, 'u') });
+    drug({ name: 'Cryoprecipitate', dose: '5–10 mL/kg', sub: '↑ fibrinogen 60–100 mg/dL; goal >150–200', custom: w == null ? '—' : capRangeU(Math.round(w*5), Math.round(w*10), 200, 100, 'pools') });
 
     sectionHead('Balanced ratio (MTP)');
     note('<strong>1:1:1 PRBC : FFP : plt</strong> in volumes. Practical peds: every 10–15 mL/kg PRBC, give 10–15 mL/kg FFP + 5–10 mL/kg plt. Activate institutional Massive Transfusion Protocol (MTP) early — don\'t wait for it to be definitely needed.', 'info');
