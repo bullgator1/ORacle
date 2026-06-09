@@ -723,6 +723,14 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     if (v == null) return '—';
     return roundMl(v) + ' mL';
   }
+  // Adult-ceiling caps on weight-scaled "custom" values (clinician-set). The calculated
+  // number is never allowed to exceed the adult max; '(adult max)' flags when the cap is shown.
+  function capN(v, cap) { return v > cap ? cap : v; }
+  function capTag(v, cap) { return v > cap ? ' (adult max)' : ''; }
+  function capRange(lo, hi, cap, unit) {
+    var l = capN(lo, cap), h = capN(hi, cap);
+    return (l === h ? ('' + h) : (l + '–' + h)) + ' ' + unit + capTag(hi, cap);
+  }
   // mL given mg and concentration (mg/mL)
   function mgToMl(mg, conc) {
     if (mg == null || conc == null || conc === 0) return null;
@@ -1795,8 +1803,8 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     drug({ name: 'Hydrocortisone', dose: '2 mg/kg IV', sub: 'Anaphylaxis adjunct, stress dose', perKg: 2, cap: 100, conc: 'hydrocortisone' });
     drug({ name: 'Magnesium sulfate', dose: '25–50 mg/kg IV', sub: 'Torsades, hypoMg, bronchospasm', perKgLow: 25, perKgHigh: 50, cap: 2000, conc: 'magnesium_sulfate',
       src: 'Over 10–20 min (faster if torsades). 10% solution = 100 mg/mL.' });
-    drug({ name: 'Fluid bolus', dose: '10 mL/kg', sub: 'Shock — repeat as needed', custom: function() { const w = calcWeight(); return w == null ? '—' : Math.round(w * 10) + ' mL'; }() });
-    drug({ name: 'Fluid bolus', dose: '20 mL/kg', sub: 'Standard resuscitation', custom: function() { const w = calcWeight(); return w == null ? '—' : Math.round(w * 20) + ' mL'; }() });
+    drug({ name: 'Fluid bolus', dose: '10 mL/kg', sub: 'Shock — repeat as needed', custom: function() { const w = calcWeight(); return w == null ? '—' : capN(Math.round(w * 10), 1000) + ' mL' + capTag(Math.round(w * 10), 1000); }() });
+    drug({ name: 'Fluid bolus', dose: '20 mL/kg', sub: 'Standard resuscitation', custom: function() { const w = calcWeight(); return w == null ? '—' : capN(Math.round(w * 20), 1000) + ' mL' + capTag(Math.round(w * 20), 1000); }() });
 
     sectionHead('MH (see scenario page)');
     drug({ name: 'Dantrolene', dose: '2.5 mg/kg IV', sub: 'Repeat q5min, max 10 mg/kg', perKg: 2.5,
@@ -1805,7 +1813,7 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
       src: '250 mg/vial. Reconstitute with 5 mL sterile water. MUCH faster than classic dantrolene.' });
 
     sectionHead('LAST');
-    drug({ name: 'Intralipid 20% — bolus', dose: '1.5 mL/kg', sub: 'Over 1 min, lean body weight', custom: function() { const w = calcWeight(); return w == null ? '—' : roundMl(w * 1.5) + ' mL'; }(),
+    drug({ name: 'Intralipid 20% — bolus', dose: '1.5 mL/kg', sub: 'Over 1 min, lean body weight', custom: function() { const w = calcWeight(); return w == null ? '—' : capN(roundMl(w * 1.5), 100) + ' mL' + capTag(roundMl(w * 1.5), 100); }(),
       src: 'ASRA 2020. Can repeat q5min × 2.' });
     drug({ name: 'Intralipid 20% — infusion', dose: '0.25 mL/kg/min', sub: 'Continuous; double if refractory', custom: function() { const w = calcWeight(); return w == null ? '—' : roundMl(w * 0.25) + ' mL/min (' + roundMl(w * 0.25 * 60) + ' mL/hr on pump)'; }() });
   }
@@ -1966,15 +1974,15 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     drug({ name: 'Calcium chloride', dose: '20 mg/kg IV', sub: 'HyperK, hypoCa, CCB OD', perKg: 20, cap: 2000, conc: 'CaCl' });
     drug({ name: 'Calcium gluconate', dose: '30–60 mg/kg IV', sub: 'Peripheral OK', perKgLow: 30, perKgHigh: 60, cap: 3000, conc: 'CaGluc' });
     drug({ name: 'Sodium bicarbonate', dose: '1 mEq/kg IV', sub: 'Severe acidosis, hyperK, TCA OD — NOT routine in arrest', perKg: 1, cap: 50, unit: 'mEq' });
-    drug({ name: 'D10W', dose: '5 mL/kg', sub: 'Hypoglycemia (glucose <60)', custom: function() { const w = calcWeight(); return w == null ? '—' : Math.round(w * 5) + ' mL'; }(),
+    drug({ name: 'D10W', dose: '5 mL/kg', sub: 'Hypoglycemia (glucose <60)', custom: function() { const w = calcWeight(); return w == null ? '—' : capN(Math.round(w * 5), 250) + ' mL' + capTag(Math.round(w * 5), 250); }(),
       src: 'Or D25 2 mL/kg = 0.5 g/kg. Neonates use D10 only.' });
     drug({ name: 'Naloxone', dose: '0.1 mg/kg IV', sub: 'Opioid OD with arrest', perKg: 0.1, cap: 2, conc: 'naloxone' });
-    drug({ name: 'Fluid bolus', dose: '20 mL/kg', sub: 'Shock — repeat; 10 mL/kg if cardiogenic/septic concern', custom: function() { const w = calcWeight(); return w == null ? '—' : Math.round(w * 20) + ' mL'; }() });
+    drug({ name: 'Fluid bolus', dose: '20 mL/kg', sub: 'Shock — repeat; 10 mL/kg if cardiogenic/septic concern', custom: function() { const w = calcWeight(); return w == null ? '—' : capN(Math.round(w * 20), 1000) + ' mL' + capTag(Math.round(w * 20), 1000); }() });
 
     sectionHead('Electricity');
-    drug({ name: 'Defibrillation', dose: '2 → 4 → ≥4 J/kg', sub: 'VF / pulseless VT', custom: function() { const w = calcWeight(); return w == null ? '—' : Math.round(w * 2) + ' → ' + Math.round(w * 4) + ' → ' + Math.round(w * 4) + ' J'; }(),
+    drug({ name: 'Defibrillation', dose: '2 → 4 → ≥4 J/kg', sub: 'VF / pulseless VT', custom: function() { const w = calcWeight(); return w == null ? '—' : capN(Math.round(w * 2), 200) + ' → ' + capN(Math.round(w * 4), 200) + ' → ' + capN(Math.round(w * 4), 200) + ' J' + capTag(Math.round(w * 4), 200); }(),
       src: 'Max 10 J/kg or adult dose (200 J biphasic).' });
-    drug({ name: 'Cardioversion', dose: '0.5–1 → 2 J/kg', sub: 'Unstable SVT/VT with pulse — synchronized', custom: function() { const w = calcWeight(); return w == null ? '—' : Math.round(w * 0.5) + '–' + Math.round(w * 1) + ' → ' + Math.round(w * 2) + ' J'; }(),
+    drug({ name: 'Cardioversion', dose: '0.5–1 → 2 J/kg', sub: 'Unstable SVT/VT with pulse — synchronized', custom: function() { const w = calcWeight(); return w == null ? '—' : capN(Math.round(w * 0.5), 200) + '–' + capN(Math.round(w * 1), 200) + ' → ' + capN(Math.round(w * 2), 200) + ' J' + capTag(Math.round(w * 2), 200); }(),
       src: 'Sedate if possible.' });
   }
   registerStep('em-pals', 'Code blue / PALS', renderPALS, ['Home', 'Scenarios']);
@@ -1988,7 +1996,7 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
       src: 'Use if no IV. Auto-injector approximation: <15 kg use 0.15 mg (peds), ≥15 kg can use 0.3 mg (adult).' });
     drug({ name: 'Epi — IV 1:10,000', dose: '1–10 mcg/kg IV bolus', sub: 'Titrate to BP', perKgLow: 1, perKgHigh: 10, unit: 'mcg', conc: 'epi_1_10k',
       src: 'Start with 1 mcg/kg if mild. Escalate quickly to 10 mcg/kg if hypotensive/arrest. Have an epi infusion ready (0.05–1 mcg/kg/min).' });
-    drug({ name: 'Fluid bolus', dose: '20 mL/kg', sub: 'May need 60+ mL/kg total', custom: function() { const w = calcWeight(); return w == null ? '—' : Math.round(w * 20) + ' mL'; }(),
+    drug({ name: 'Fluid bolus', dose: '20 mL/kg', sub: 'May need 60+ mL/kg total', custom: function() { const w = calcWeight(); return w == null ? '—' : capN(Math.round(w * 20), 1000) + ' mL' + capTag(Math.round(w * 20), 1000); }(),
       src: 'Massive plasma extravasation — large volume needed.' });
 
     sectionHead('Adjuncts (do not delay epi for these)');
@@ -2036,7 +2044,7 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
 
     sectionHead('Hyperkalemia (treat aggressively)');
     drug({ name: 'Calcium chloride', dose: '10–20 mg/kg IV', sub: 'Membrane stabilization', perKgLow: 10, perKgHigh: 20, cap: 2000, conc: 'CaCl' });
-    drug({ name: 'Insulin + glucose', dose: '0.1 U/kg insulin + 0.5 g/kg dextrose', sub: 'Shift K+ into cells', custom: function() { const w = calcWeight(); return w == null ? '—' : roundMg(w * 0.1) + ' U + ' + roundMg(w * 0.5) + ' g'; }() });
+    drug({ name: 'Insulin + glucose', dose: '0.1 U/kg insulin + 0.5 g/kg dextrose', sub: 'Shift K+ into cells', custom: function() { const w = calcWeight(); return w == null ? '—' : capN(roundMg(w * 0.1), 10) + ' U + ' + capN(roundMg(w * 0.5), 25) + ' g' + (roundMg(w * 0.1) > 10 || roundMg(w * 0.5) > 25 ? ' (adult max)' : ''); }() });
     drug({ name: 'Sodium bicarbonate', dose: '1–2 mEq/kg IV', sub: 'Acidosis + K+ shift', perKgLow: 1, perKgHigh: 2, cap: 50, unit: 'mEq' });
     drug({ name: 'Albuterol', dose: '4–8 puffs', sub: 'β2 K+ shift', custom: '4–8 puffs' });
 
@@ -2053,9 +2061,9 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
 
     sectionHead('Intralipid 20% protocol (ASRA 2020)');
     const w = calcWeight();
-    drug({ name: 'Initial bolus', dose: '1.5 mL/kg over 1 min', sub: 'IV, lean body weight', custom: w == null ? '—' : roundMl(w * 1.5) + ' mL' });
+    drug({ name: 'Initial bolus', dose: '1.5 mL/kg over 1 min', sub: 'IV, lean body weight', custom: w == null ? '—' : capN(roundMl(w * 1.5), 100) + ' mL' + capTag(roundMl(w * 1.5), 100) });
     drug({ name: 'Infusion', dose: '0.25 mL/kg/min', sub: 'Continuous — continue 10 min after stability', custom: w == null ? '—' : roundMl(w * 0.25) + ' mL/min' });
-    drug({ name: 'Repeat bolus', dose: '1.5 mL/kg q5min × 2 max', sub: 'If persistent CV collapse', custom: w == null ? '—' : roundMl(w * 1.5) + ' mL' });
+    drug({ name: 'Repeat bolus', dose: '1.5 mL/kg q5min × 2 max', sub: 'If persistent CV collapse', custom: w == null ? '—' : capN(roundMl(w * 1.5), 100) + ' mL' + capTag(roundMl(w * 1.5), 100) });
     drug({ name: 'Double infusion', dose: '0.5 mL/kg/min', sub: 'If refractory hypotension', custom: w == null ? '—' : roundMl(w * 0.5) + ' mL/min' });
     drug({ name: 'Maximum dose', dose: '10–12 mL/kg first 30 min', sub: 'Upper safety ceiling', custom: w == null ? '—' : roundMl(w * 10) + '–' + roundMl(w * 12) + ' mL' });
 
@@ -2075,7 +2083,7 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     drug({ name: 'Calcium gluconate', dose: '15–30 mg/kg IV', sub: 'Peripheral OK', perKgLow: 15, perKgHigh: 30, cap: 3000, conc: 'CaGluc' });
 
     sectionHead('Shift K+ into cells');
-    drug({ name: 'Insulin + dextrose', dose: '0.1 U/kg insulin + 0.5 g/kg dextrose', sub: 'Over 30 min — monitor late hypoglycemia', custom: function() { const w = calcWeight(); return w == null ? '—' : roundMg(w * 0.1) + ' U + ' + roundMg(w * 0.5) + ' g'; }() });
+    drug({ name: 'Insulin + dextrose', dose: '0.1 U/kg insulin + 0.5 g/kg dextrose', sub: 'Over 30 min — monitor late hypoglycemia', custom: function() { const w = calcWeight(); return w == null ? '—' : capN(roundMg(w * 0.1), 10) + ' U + ' + capN(roundMg(w * 0.5), 25) + ' g' + (roundMg(w * 0.1) > 10 || roundMg(w * 0.5) > 25 ? ' (adult max)' : ''); }() });
     drug({ name: 'Albuterol', dose: '4–8 puffs (or 2.5–5 mg neb)', sub: 'β2 shift — onset 30 min', custom: '4–8 puffs' });
     drug({ name: 'Sodium bicarbonate', dose: '1 mEq/kg IV', sub: 'Only if acidosis present', perKg: 1, cap: 50, unit: 'mEq' });
 
@@ -2323,8 +2331,8 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     drug({ name: 'Major surgery', dose: '7 mL/kg/hr', custom: w == null ? '—' : Math.round(w * 7) + ' mL/hr' });
 
     sectionHead('Resuscitation boluses');
-    drug({ name: 'Bolus — 10 mL/kg', sub: 'Cardiogenic/septic concern', dose: '10 mL/kg', custom: w == null ? '—' : Math.round(w * 10) + ' mL' });
-    drug({ name: 'Bolus — 20 mL/kg', sub: 'Standard resuscitation', dose: '20 mL/kg', custom: w == null ? '—' : Math.round(w * 20) + ' mL' });
+    drug({ name: 'Bolus — 10 mL/kg', sub: 'Cardiogenic/septic concern', dose: '10 mL/kg', custom: w == null ? '—' : capN(Math.round(w * 10), 1000) + ' mL' + capTag(Math.round(w * 10), 1000) });
+    drug({ name: 'Bolus — 20 mL/kg', sub: 'Standard resuscitation', dose: '20 mL/kg', custom: w == null ? '—' : capN(Math.round(w * 20), 1000) + ' mL' + capTag(Math.round(w * 20), 1000) });
 
     sectionHead('Estimated blood volume');
     let ebvPerKg = null, ebvLabel = '';
@@ -2340,10 +2348,10 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     drug({ name: 'EBV', dose: ebvLabel, custom: (ebvPerKg == null || w == null) ? '—' : Math.round(w * ebvPerKg) + ' mL' });
 
     sectionHead('Transfusion');
-    drug({ name: 'Packed RBCs', dose: '10–15 mL/kg', sub: '↑ Hgb 2–3 g/dL', custom: w == null ? '—' : Math.round(w * 10) + '–' + Math.round(w * 15) + ' mL' });
-    drug({ name: 'Platelets', dose: '5–10 mL/kg', sub: '↑ plt 50–100k', custom: w == null ? '—' : Math.round(w * 5) + '–' + Math.round(w * 10) + ' mL' });
-    drug({ name: 'Fresh frozen plasma', dose: '10–15 mL/kg', sub: 'Factor levels ↑ 15–20%', custom: w == null ? '—' : Math.round(w * 10) + '–' + Math.round(w * 15) + ' mL' });
-    drug({ name: 'Cryoprecipitate', dose: '1–2 units/kg', sub: 'Fibrinogen ↑ 60–100 mg/dL', custom: w == null ? '—' : Math.round(w * 1) + '–' + Math.round(w * 2) + ' units' });
+    drug({ name: 'Packed RBCs', dose: '10–15 mL/kg', sub: '↑ Hgb 2–3 g/dL', custom: w == null ? '—' : capRange(Math.round(w * 10), Math.round(w * 15), 700, 'mL') });
+    drug({ name: 'Platelets', dose: '5–10 mL/kg', sub: '↑ plt 50–100k', custom: w == null ? '—' : capRange(Math.round(w * 5), Math.round(w * 10), 300, 'mL') });
+    drug({ name: 'Fresh frozen plasma', dose: '10–15 mL/kg', sub: 'Factor levels ↑ 15–20%', custom: w == null ? '—' : capRange(Math.round(w * 10), Math.round(w * 15), 500, 'mL') });
+    drug({ name: 'Cryoprecipitate', dose: '1–2 units/kg', sub: 'Fibrinogen ↑ 60–100 mg/dL', custom: w == null ? '—' : capRange(Math.round(w * 1), Math.round(w * 2), 10, 'units') });
   }
   registerStep('eq-fluids', 'Fluids & blood', renderFluids, ['Home', 'Equipment']);
 
@@ -2421,13 +2429,13 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
       stage.appendChild(r);
     }
     sectionHead('Defibrillation (VF / pulseless VT)');
-    row('1st shock', w == null ? null : Math.round(w * 2) + ' J', '2 J/kg');
-    row('2nd shock', w == null ? null : Math.round(w * 4) + ' J', '4 J/kg');
-    row('Subsequent', w == null ? null : Math.round(w * 4) + ' J+', '≥4 J/kg, max 10 J/kg or adult 200 J biphasic');
+    row('1st shock', w == null ? null : capN(Math.round(w * 2), 200) + ' J' + capTag(Math.round(w * 2), 200), '2 J/kg');
+    row('2nd shock', w == null ? null : capN(Math.round(w * 4), 200) + ' J' + capTag(Math.round(w * 4), 200), '4 J/kg');
+    row('Subsequent', w == null ? null : capN(Math.round(w * 4), 200) + ' J+' + capTag(Math.round(w * 4), 200), '≥4 J/kg, max 10 J/kg or adult 200 J biphasic');
 
     sectionHead('Synchronized cardioversion (SVT/VT w/ pulse)');
-    row('1st shock', w == null ? null : Math.round(w * 0.5) + '–' + Math.round(w * 1) + ' J', '0.5–1 J/kg, sedate if possible');
-    row('2nd shock', w == null ? null : Math.round(w * 2) + ' J', '2 J/kg');
+    row('1st shock', w == null ? null : capRange(Math.round(w * 0.5), Math.round(w * 1), 200, 'J'), '0.5–1 J/kg, sedate if possible');
+    row('2nd shock', w == null ? null : capN(Math.round(w * 2), 200) + ' J' + capTag(Math.round(w * 2), 200), '2 J/kg');
   }
   registerStep('eq-defib', 'Defibrillation', renderDefib, ['Home', 'Equipment']);
 
@@ -2736,7 +2744,7 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
       else maint = w + 40;
     }
     row('Maintenance fluid', maint == null ? null : Math.round(maint) + ' mL/hr', '4-2-1 rule');
-    row('20 mL/kg bolus pre-drawn', w == null ? null : Math.round(w*20) + ' mL');
+    row('20 mL/kg bolus pre-drawn', w == null ? null : capN(Math.round(w*20), 1000) + ' mL' + capTag(Math.round(w*20), 1000));
     renderIVTubingBlock();
     note('<strong>Tubing heuristic:</strong> burette + microdrip for infants and anyone where free-flow could harm; microdrip alone when rate <100 mL/hr; macrodrip acceptable once large enough and rate high enough to make drop-counting impractical (~10 yr / ~40 kg / >100 mL/hr). <em>Check your local P&P — published standards are the floor.</em>', 'info');
 
@@ -2769,10 +2777,10 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
       custom: ebv == null ? '—' : Math.round(ebv) + ' mL (50% = ' + Math.round(ebv/2) + ' mL)' });
 
     sectionHead('Components (per dose)');
-    drug({ name: 'Packed RBC', dose: '10–15 mL/kg', sub: '↑ Hgb 2–3 g/dL', custom: w == null ? '—' : Math.round(w*10) + '–' + Math.round(w*15) + ' mL' });
-    drug({ name: 'FFP', dose: '10–15 mL/kg', sub: '↑ factors 15–20%; goal INR <1.5', custom: w == null ? '—' : Math.round(w*10) + '–' + Math.round(w*15) + ' mL' });
-    drug({ name: 'Platelets', dose: '5–10 mL/kg', sub: '↑ plt 50–100k; goal >50k (or >100k if intracranial/spinal)', custom: w == null ? '—' : Math.round(w*5) + '–' + Math.round(w*10) + ' mL' });
-    drug({ name: 'Cryoprecipitate', dose: '1–2 units/kg', sub: '↑ fibrinogen 60–100 mg/dL; goal >150–200', custom: w == null ? '—' : Math.round(w*1) + '–' + Math.round(w*2) + ' units' });
+    drug({ name: 'Packed RBC', dose: '10–15 mL/kg', sub: '↑ Hgb 2–3 g/dL', custom: w == null ? '—' : capRange(Math.round(w*10), Math.round(w*15), 700, 'mL') });
+    drug({ name: 'FFP', dose: '10–15 mL/kg', sub: '↑ factors 15–20%; goal INR <1.5', custom: w == null ? '—' : capRange(Math.round(w*10), Math.round(w*15), 500, 'mL') });
+    drug({ name: 'Platelets', dose: '5–10 mL/kg', sub: '↑ plt 50–100k; goal >50k (or >100k if intracranial/spinal)', custom: w == null ? '—' : capRange(Math.round(w*5), Math.round(w*10), 300, 'mL') });
+    drug({ name: 'Cryoprecipitate', dose: '1–2 units/kg', sub: '↑ fibrinogen 60–100 mg/dL; goal >150–200', custom: w == null ? '—' : capRange(Math.round(w*1), Math.round(w*2), 10, 'units') });
 
     sectionHead('Balanced ratio (MTP)');
     note('<strong>1:1:1 PRBC : FFP : plt</strong> in volumes. Practical peds: every 10–15 mL/kg PRBC, give 10–15 mL/kg FFP + 5–10 mL/kg plt. Activate institutional Massive Transfusion Protocol (MTP) early — don\'t wait for it to be definitely needed.', 'info');
