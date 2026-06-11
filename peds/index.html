@@ -309,6 +309,14 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
   .note.danger { background: var(--danger-bg); color: var(--danger-fg); }
   .note.info { background: var(--info-bg); color: var(--info-fg); }
   .note strong { font-weight: 600; }
+  .page-link {
+    color: var(--accent, #2b8a6f);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .page-link:active { opacity: 0.6; }
   /* Form inputs */
   .input-row {
     display: flex;
@@ -505,11 +513,7 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     margin-bottom: 14px;
     line-height: 1.5;
   }
-  /* Inside ORacle on phones, the shell bar hosts search/home — drop our own header */
-  @media (max-width: 640px){ header { display: none; } }
 </style>
-<script>window.__ORACLE_APP='peds';</script>
-<script src="../xref.js"></script>
 </head>
 <body>
 <div id="oracle-boot-error" role="alert" style="display:none;position:fixed;inset:0;z-index:99999;background:#3d1414;color:#fff;font-family:-apple-system,system-ui,sans-serif;padding:28px 22px;overflow:auto;-webkit-overflow-scrolling:touch">
@@ -840,6 +844,22 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     path = path.slice(0, idx + 1);
     draw();
   }
+
+  // Internal cross-reference links. pl(key, label) returns an HTML string usable
+  // inside note()/src text; clicks are handled by delegation on the stage.
+  function pl(key, label) {
+    const e = STEP_REGISTRY[key];
+    const txt = label || (e && e.label) || key;
+    return '<span class="page-link" data-go="' + key + '">' + txt + '</span>';
+  }
+  stage.addEventListener('click', function(ev) {
+    const a = ev.target.closest && ev.target.closest('.page-link[data-go]');
+    if (!a) return;
+    ev.preventDefault();
+    const key = a.getAttribute('data-go');
+    const e = STEP_REGISTRY[key];
+    if (e) go(e.label, e.key, e.render, true);
+  });
 
   function draw() {
     window.__oracleBooted = 1;   // reaching a render means the data parsed OK
@@ -1511,6 +1531,7 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     optGrid([
       { title: 'Room setup', sub: 'Pre-case: circuit, mask, OPA, LMA, ETT, blade, BP cuff, vent', onClick: () => go('Room setup', 'b-room', renderRoomSetup) },
       { title: 'Routine GA', sub: 'Premed → induction → paralytic → maintenance → reversal → PONV → analgesia', onClick: () => go('Routine GA', 'b-routineGA', renderBundleRoutineGA) },
+      { title: 'Prophylaxis by surgery type', sub: 'Which antibiotic for which case + PCN-allergy alt', onClick: () => go('Prophylaxis by surgery type', 'b-abx-surgery', renderAbxBySurgery) },
       { title: 'Mask induction', sub: 'Inhalational, then IV access', onClick: () => go('Mask induction', 'b-mask', renderBundleMask) },
       { title: 'RSI', sub: 'Rapid sequence — preox, hypnotic + paralytic', onClick: () => go('RSI', 'b-rsi', renderBundleRSI) },
       { title: 'MABL', sub: 'Maximum allowable blood loss — set transfusion threshold', onClick: () => go('MABL', 'eq-mabl', renderMABL) },
@@ -1568,6 +1589,7 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
       { title: 'Ketamine route equivalence', sub: 'IV / IM / PO / nasal / PR', onClick: () => go('Ketamine routes', 'ref-ketamine-routes', renderKetamineRoutes) },
       { title: 'Drug concentrations', sub: 'Editable lookup table', onClick: () => go('Drug concentrations', 'ref-conc', renderConcentrations) },
       { title: 'Dose caps', sub: 'What\'s capped, where, why', onClick: () => go('Dose caps', 'ref-caps', renderCaps) },
+      { title: 'Surgical prophylaxis redosing', sub: 'Intra-op re-dose intervals', onClick: () => go('Surgical prophylaxis redosing', 'ref-redose', renderRedosing) },
     ]);
   }
 
@@ -1650,8 +1672,7 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
       src: '1–2 min before propofol. Reduces injection pain, blunts laryngoscopy response.' });
 
     sectionHead('Inhalational');
-    note('<strong>Sevoflurane mask induction:</strong> 8% in N₂O/O₂ or O₂. Most pediatric inductions in <6yr who refuse IV. Watch for breath-holding, laryngospasm at light planes. See <a href="#" onclick="event.preventDefault();window.__gMask&&__gMask()">Mask induction bundle</a> for full setup.', 'info');
-    setTimeout(() => { window.__gMask = function() { go('Mask induction', 'b-mask', renderBundleMask); }; }, 0);
+    note('<strong>Sevoflurane mask induction:</strong> 8% in N₂O/O₂ or O₂. Most pediatric inductions in <6yr who refuse IV. Watch for breath-holding, laryngospasm at light planes. See ' + pl('b-mask', 'Mask induction bundle') + ' for full setup.', 'info');
   }
   registerStep('cat-induction', 'Induction', renderInduction, ['Home']);
 
@@ -1710,8 +1731,8 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     drug({ name: 'Glycopyrrolate', dose: '0.01 mg/kg IV', sub: 'With neostigmine', perKg: 0.01, conc: 'glycopyrrolate' });
 
     sectionHead('Opioid');
-    drug({ name: 'Naloxone — full reversal', dose: '0.01 mg/kg IV', sub: 'Overdose / arrest', perKg: 0.01, cap: 2, conc: 'naloxone',
-      src: 'PALS dose. For postop respiratory depression use lower titrated dose (see below).' });
+    drug({ name: 'Naloxone — full reversal', dose: '0.1 mg/kg IV', sub: 'Overdose / arrest', perKg: 0.1, cap: 2, conc: 'naloxone',
+      src: 'PALS full-reversal / arrest dose: 0.1 mg/kg, max 2 mg, repeat q2–3 min as needed. For postop respiratory depression preserving analgesia, use the lower titrated dose below.' });
     drug({ name: 'Naloxone — postop', dose: '0.001–0.005 mg/kg IV', sub: 'Titrate to RR, avoid pain crisis', perKgLow: 0.001, perKgHigh: 0.005, conc: 'naloxone',
       src: '1–5 mcg/kg titrated q2min. Full doses precipitate severe pain + sympathetic surge + APO.' });
 
@@ -1744,7 +1765,7 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     drug({ name: 'Remifentanil', dose: '0.05–0.5 mcg/kg/min', sub: 'Infusion only — context-sensitive 1/2 life independent of duration', custom: 'Infusion: 0.05–0.5 mcg/kg/min',
       src: 'Useful for total IV anesthesia. Plan postop analgesia BEFORE turning off (rapid offset).' });
 
-    note('See <strong>Opioid conversion table</strong> for IV/PO morphine equivalents. Reduce calculated dose 25–50% for incomplete cross-tolerance when switching opioids.', 'info');
+    note('See ' + pl('ref-opioid-conv', 'Opioid conversion table') + ' for IV/PO morphine equivalents. Reduce calculated dose 25–50% for incomplete cross-tolerance when switching opioids.', 'info');
   }
   registerStep('cat-opioids', 'Opioids', renderOpioids, ['Home']);
 
@@ -1820,7 +1841,7 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     drug({ name: 'Fluid bolus', dose: '10 mL/kg', sub: 'Shock — repeat as needed', custom: function() { const w = calcWeight(); return w == null ? '—' : capN(Math.round(w * 10), 1000) + ' mL' + capTag(Math.round(w * 10), 1000); }() });
     drug({ name: 'Fluid bolus', dose: '20 mL/kg', sub: 'Standard resuscitation', custom: function() { const w = calcWeight(); return w == null ? '—' : capN(Math.round(w * 20), 1000) + ' mL' + capTag(Math.round(w * 20), 1000); }() });
 
-    sectionHead('MH (see scenario page)');
+    sectionHead('MH (' + pl('em-mh', 'see scenario page') + ')');
     drug({ name: 'Dantrolene', dose: '2.5 mg/kg IV', sub: 'Repeat q5min, max 10 mg/kg', perKg: 2.5,
       src: 'Reconstitute 20 mg vial with 60 mL sterile water (preservative-free). For a 30 kg child = 75 mg = 3.75 vials. Ryanodex 250 mg/vial reconstitutes faster.' });
     drug({ name: 'Ryanodex', dose: '2.5 mg/kg IV', sub: 'Same dose, faster prep', perKg: 2.5,
@@ -1834,7 +1855,7 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
   registerStep('cat-emergency', 'Emergency drugs', renderEmergency, ['Home']);
 
   function renderHemodynamic() {
-    titleWithFav('Hemodynamic meds', 'Bolus doses for BP/HR control. See infusions for continuous.', 'cat-hemodynamic');
+    titleWithFav('Hemodynamic meds', 'Bolus doses for BP/HR control. See ' + pl('cat-vasoactive', 'infusions') + ' for continuous.', 'cat-hemodynamic');
     drug({ name: 'Ephedrine', dose: '0.1–0.3 mg/kg IV', sub: 'Indirect — ↑BP + ↑HR', perKgLow: 0.1, perKgHigh: 0.3, cap: 25, conc: 'ephedrine' });
     drug({ name: 'Phenylephrine', dose: '1–10 mcg/kg IV', sub: 'Pure α — ↑BP, reflex ↓HR', perKgLow: 1, perKgHigh: 10, cap: 200, unit: 'mcg', conc: 'phenylephrine' });
     drug({ name: 'Labetalol', dose: '0.1–0.4 mg/kg IV', sub: 'Mixed α/β — for HTN', perKgLow: 0.1, perKgHigh: 0.4, cap: 20, conc: 'labetalol' });
@@ -1890,25 +1911,70 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
 
   function renderAbx() {
     titleWithFav('Antibiotics', 'Surgical prophylaxis & treatment. Doses are starting doses — adjust for renal function.', 'cat-abx');
-    drug({ name: 'Cefazolin (Kefzol/Ancef)', dose: '25 mg/kg IV', sub: 'Surgical prophylaxis — standard', perKg: 25, cap: 2000,
-      src: 'Re-dose q4h intraop. Adult dose 2 g (3 g if ≥120 kg). Range 8.3–25 mg/kg q6–8h, max 6 g/d.' });
-    drug({ name: 'Cefoxitin (Mefoxin)', dose: '30–40 mg/kg IV', sub: 'Colorectal, GU surgery', perKgLow: 30, perKgHigh: 40, cap: 2000,
-      src: 'q6h × 24h post-op.' });
-    drug({ name: 'Ceftriaxone (Rocephin)', dose: '50 mg/kg IV', sub: 'Daily dosing', perKg: 50, cap: 2000,
-      src: 'q12–24h. 50–75 mg/kg/dose range. Max 4 g/d.' });
-    drug({ name: 'Vancomycin', dose: '15 mg/kg IV', sub: 'MRSA risk, severe PCN allergy', perKg: 15, cap: 1500,
-      src: 'q6–8h. Slow infusion (over 60 min) to avoid red-man. 10–20 mg/kg range. Max 1 g/dose for prophylaxis (some institutions 1.5 g).' });
-    drug({ name: 'Clindamycin (Cleocin)', dose: '10 mg/kg IV', sub: 'PCN allergy, anaerobic coverage', perKg: 10, cap: 900,
-      src: 'q6h. 6.25–10 mg/kg/dose range. Max 4.8 g/d. C. diff risk.' });
-    drug({ name: 'Gentamicin', dose: '2.5 mg/kg IV', sub: 'Gram-negative coverage', perKg: 2.5, cap: 240,
-      src: 'q8h conventional, or 5–7 mg/kg q24h extended-interval. Nephro/ototoxic.' });
-    drug({ name: 'Ampicillin', dose: '50 mg/kg IV', sub: 'Listeria, enterococcus, group B strep', perKg: 50, cap: 3000,
-      src: 'q4–6h. 25–50 mg/kg range. Max 2–3 g/d.' });
-    drug({ name: 'Metronidazole (Flagyl)', dose: '10 mg/kg IV', sub: 'Anaerobic coverage', perKg: 10, cap: 500 });
+    note('Re-dose intervals follow <strong>Metropolitan</strong> (hospital pharmacy), cross-referenced against the <strong>MD Anderson 2025</strong> pediatric prophylaxis algorithm. <strong>⚑</strong> = sources differ — the card shows both. Renal-adjusted intervals on the ' + pl('ref-redose', 'Surgical prophylaxis redosing') + ' page.', 'info');
+    drug({ name: 'Cefazolin (Kefzol/Ancef)', dose: '25 mg/kg IV', sub: 'Prophylaxis (some sites use 30) · re-dose q4h, q2h cardiac', perKg: 25, cap: 2000,
+      src: 'Re-dose q4h per Metropolitan and the MD Anderson 2025 peds algorithm (also adult ASHP/IDSA/SIS 2013); some peds stewardship tables use q3h. Cardiac/CPB: q2h. Also re-dose after ~30 mL/kg blood loss. Dose: guidelines (ASHP, AAP Red Book, MD Anderson) recommend 30 mg/kg (max 2 g, 3 g if ≥120 kg); 25 mg/kg also widely used. See ' + pl('ref-redose', 'Surgical prophylaxis redosing') + ' for renal-adjusted intervals.' });
+    drug({ name: 'Cefoxitin (Mefoxin)', dose: '30–40 mg/kg IV', sub: 'Colorectal, GU surgery · re-dose q2h', perKgLow: 30, perKgHigh: 40, cap: 2000,
+      src: 'MD Anderson 2025 & Met use 40 mg/kg (max 2 g) for prophylaxis. Intraop re-dose q2h (q4h at CrCl 30–50, q8h at 10–29). q6h × 24h post-op if continued.' });
+    drug({ name: 'Ceftriaxone (Rocephin)', dose: '50 mg/kg IV', sub: 'Daily dosing · no intraop re-dose', perKg: 50, cap: 2000,
+      src: 'MD Anderson 2025 uses 50 mg/kg (max 2 g) for prophylaxis (e.g., plastics through the oral cavity). Long half-life — single intraop dose, no re-dose. Treatment 50–75 mg/kg, max 4 g/d.' });
+    drug({ name: 'Vancomycin', dose: '15 mg/kg IV', sub: 'MRSA / severe PCN allergy · single dose, no routine re-dose', perKg: 15, cap: 1500,
+      src: 'Metropolitan AND MD Anderson 2025 both state re-dosing is not routinely required (long half-life); some older peds tables re-dose q6h on long cases. Re-dose any agent after ~30 mL/kg blood loss. Slow infusion over 60 min (avoid red-man); start 60–120 min before incision. Met caps prophylaxis at 1.5 g; MD Anderson max 2 g/dose. 10–20 mg/kg range.' });
+    drug({ name: 'Clindamycin (Cleocin)', dose: '10 mg/kg IV', sub: 'Anaerobic / PCN allergy (see note ⚑) · re-dose q6h', perKg: 10, cap: 900,
+      src: '⚑ MD Anderson 2025 no longer recommends clindamycin as the beta-lactam-allergy alternative due to rising Staphylococcus resistance — they use vancomycin (± ciprofloxacin or metronidazole) instead. Still widely used for anaerobic coverage. Re-dose q6h. 6.25–10 mg/kg range. Max 4.8 g/d. C. diff risk.' });
+    drug({ name: 'Gentamicin', dose: '5 mg/kg IV', sub: 'Gram-negative · single dose, no re-dose · 2 mg/kg urology', perKg: 5, cap: 500,
+      src: 'Prophylaxis 5 mg/kg (2 mg/kg urology) per Metropolitan & Coté — single dose 60–120 min before incision, not re-dosed intraop. ⚑ MD Anderson 2025 uses 2.5 mg/kg (max 80 mg), but only as a low-dose adjunct to cefazolin for implanted orthopedic prosthesis — not as primary GNR coverage. Weight basis: Met adjusts for obesity (ABW = IBW + 0.4 × (actual − IBW) if >20% over IBW); MD Anderson doses a single prophylaxis dose on ACTUAL body weight. No fixed peds prophylaxis cap (~5 mg/kg; adult single dose generally ≤500 mg). Treatment: 2–2.5 mg/kg q8h conventional, or 5–7 mg/kg q24h extended-interval. Nephro/ototoxic; tobramycin/acyclovir use ABW too.' });
+    drug({ name: 'Ampicillin', dose: '50 mg/kg IV', sub: 'Listeria, enterococcus, GBS · re-dose q2h', perKg: 50, cap: 3000,
+      src: 'Prophylaxis intraop re-dose q2h. Treatment q4–6h. 25–50 mg/kg range. Max 2–3 g/d.' });
+    drug({ name: 'Ampicillin/sulbactam (Unasyn)', dose: '50 mg/kg IV', sub: 'ENT/oral clean-contaminated, some ortho · re-dose q2h', perKg: 50, cap: 2000,
+      src: 'Dose based on ampicillin component (max 2 g ampicillin). Prophylaxis agent for head & neck / plastics through the oral cavity (MD Anderson 2025) and some orthopedic cases (Metropolitan). Intraop re-dose q2h (q4h CrCl 30–50, q8h 10–29).' });
+    drug({ name: 'Metronidazole (Flagyl)', dose: '15 mg/kg IV', sub: 'Anaerobic prophylaxis · no intraop re-dose', perKg: 15, cap: 500,
+      src: 'Prophylaxis 15 mg/kg (max 500) per MD Anderson 2025 & peds stewardship tables. Long half-life — single intraop dose covers the case. Treatment dosing is lower per dose: 10 mg/kg q8h (appendicitis 30 mg/kg q24h).' });
     drug({ name: 'Piperacillin/tazobactam (Zosyn)', dose: '100 mg/kg IV', sub: 'Broad-spectrum, includes pseudomonas', perKg: 100, cap: 4500,
       src: 'Pip-component. q6–8h. Max single dose 4.5 g.' });
+    drug({ name: 'Ciprofloxacin (Cipro)', dose: '10 mg/kg IV', sub: 'Urologic; PCN-allergy alt (MDA) · no routine re-dose', perKg: 10, cap: 400,
+      src: 'Prophylaxis 10 mg/kg (max 400) per MD Anderson 2025 — part of PCN-allergy regimens (lower GI, ortho pelvic) and urologic per Metropolitan. Start 60–120 min before incision (longer infusion). Single dose for typical cases. Tendon-rupture risk noted but acceptable for single-dose prophylaxis.' });
+    note('Choosing by procedure? See ' + pl('b-abx-surgery', 'Prophylaxis by surgery type') + ' (Routine scenarios) for site → drug + allergy alternative.', 'info');
   }
   registerStep('cat-abx', 'Antibiotics', renderAbx, ['Home']);
+
+  function renderAbxBySurgery() {
+    titleWithFav('Prophylaxis by surgery type', 'Site → first-line + PCN-allergy alternative. Tap a drug on the ' + pl('cat-abx', 'Antibiotics page') + ' for mL.', 'b-abx-surgery');
+    note('Base list follows <strong>Metropolitan</strong> (your hospital); sites Met doesn\'t cover are added from the <strong>MD Anderson 2025</strong> peds algorithm. <strong>⚑</strong> = sources differ — both shown. Antibiotics within 60 min of incision; <strong>vancomycin, ciprofloxacin, gentamicin</strong> 60–120 min before.', 'info');
+    note('Standard peds single pre-op doses: cefazolin 25–30 · cefoxitin 40 · ampicillin-sulbactam 50 · ceftriaxone 50 · metronidazole 15 · vancomycin 15 · ciprofloxacin 10 mg/kg. <strong>Gentamicin is the one that varies by procedure: 5 mg/kg (2 urology; 2.5 ortho-prosthesis adjunct).</strong> Re-dose intervals on the ' + pl('cat-abx', 'Antibiotics cards') + '.', 'info');
+    note('<strong>⚑ PCN-allergy choice differs by source.</strong> Metropolitan uses <strong>clindamycin</strong>-based alternatives (± gentamicin). MD Anderson 2025 <strong>dropped clindamycin</strong> (rising Staph resistance) and uses <strong>vancomycin</strong> (± ciprofloxacin or metronidazole). Met-sourced rows show clindamycin with ⚑; MD Anderson rows show vancomycin.', 'warn');
+
+    const tbl = el('table', 'ref');
+    const thead = el('thead'); const hr = el('tr');
+    ['Surgery', 'First-line', 'If β-lactam allergy'].forEach(h => { const th = el('th'); th.textContent = h; hr.appendChild(th); });
+    thead.appendChild(hr); tbl.appendChild(thead);
+    const tbody = el('tbody');
+    [
+      ['Gastroduodenal / biliary / hernia (Met)', 'Cefazolin', 'Clindamycin ⚑ or ciprofloxacin'],
+      ['Appendectomy / small bowel / colorectal — lower GI (Met + MDA)', 'Cefoxitin (preferred), or cefazolin + metronidazole', 'Clindamycin + gentamicin <strong>5 mg/kg</strong> ⚑ (MDA: vancomycin + ciprofloxacin + metronidazole)'],
+      ['OB / GYN — C-section, hysterectomy (Met)', 'Cefazolin', 'Clindamycin + gentamicin <strong>5 mg/kg</strong> ⚑'],
+      ['Urologic — lower-tract instrumentation (Met)', 'Ciprofloxacin, or cefazolin', 'Gentamicin <strong>2 mg/kg</strong> ± clindamycin ⚑'],
+      ['Urologic — implanted prosthesis / clean-contaminated (Met)', 'Cefazolin ± gentamicin <strong>2 mg/kg</strong> (± metronidazole)', 'Gentamicin <strong>2 mg/kg</strong> ± clindamycin ⚑, or ciprofloxacin + metronidazole'],
+      ['Orthopedic — clean, spinal, hip fracture, total joint (Met + MDA)', 'Cefazolin (± ampicillin-sulbactam, Met)', 'Clindamycin ⚑ (MDA: vancomycin)'],
+      ['Orthopedic — implanted prosthesis (MDA)', 'Cefazolin + gentamicin <strong>2.5 mg/kg</strong> (max 80)', 'Vancomycin'],
+      ['Orthopedic — pelvic (MDA)', 'Ceftriaxone, then cefazolin q4h if significant blood loss', 'Vancomycin + ciprofloxacin'],
+      ['Cardiac / vascular thoracic (MDA)', 'Cefazolin (cardiac re-dose q2h)', 'Vancomycin'],
+      ['Head &amp; neck (ENT, clean) (MDA)', 'Cefazolin', 'Vancomycin'],
+      ['Head &amp; neck / plastics — through oral cavity (MDA)', 'Ampicillin-sulbactam', 'Vancomycin + metronidazole'],
+      ['Neurosurgery (MDA)', 'Cefazolin', 'Vancomycin'],
+      ['Ophthalmology — enucleation / plaque (MDA)', 'Cefazolin', 'Vancomycin'],
+      ['Ophthalmology — routine (MDA)', 'Povidone-iodine 5% topical', '—'],
+      ['Clean general / plastic surgery (MDA)', 'None', 'None'],
+    ].forEach(r => {
+      const tr = el('tr');
+      r.forEach(c => { const td = el('td'); td.innerHTML = c; tr.appendChild(td); });
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody); stage.appendChild(tbl);
+
+    note('Selection is procedure- and institution-specific — this is a memory aid, not a substitute for your surgical team\'s order or local protocol. Discontinue prophylaxis within 24 h. <strong>Local policy first.</strong>', 'warn');
+  }
+  registerStep('b-abx-surgery', 'Prophylaxis by surgery type', renderAbxBySurgery, ['Home', 'Bundles']);
 
   function renderLA() {
     titleWithFav('Local anesthetics', 'Max doses + caudal volumes (Armitage).', 'cat-la');
@@ -2473,7 +2539,7 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     drug({ name: 'Rocuronium', dose: '0.6 mg/kg IV', sub: 'Reversible with sugammadex', perKg: 0.6, conc: 'rocuronium' });
 
     sectionHead('4 — Antibiotics');
-    drug({ name: 'Cefazolin', dose: '25 mg/kg IV', perKg: 25, cap: 2000, src: 'Within 60 min of incision. Vanco within 120 min.' });
+    drug({ name: 'Cefazolin', dose: '25 mg/kg IV', sub: 'Some sites use 30 mg/kg · re-dose q4h', perKg: 25, cap: 2000, src: 'Re-dose q4h (Metropolitan & ASHP); q2h cardiac/CPB. Within 60 min of incision; vanco within 120 min. Dose: guidelines 30 mg/kg, 25 also used.' });
 
     sectionHead('5 — PONV prophylaxis');
     drug({ name: 'Ondansetron', dose: '0.15 mg/kg IV', sub: 'End of case', perKg: 0.15, cap: 4, conc: 'ondansetron' });
@@ -2862,7 +2928,7 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     note('<strong>Local policy first.</strong> Your facility\'s pediatric clinical educator, pharmacy, or nursing P&P committee almost certainly has a written local policy — align to that for medico-legal cover. The published standards are the floor, not the ceiling.', 'warn');
 
     sectionHead('Related');
-    note('See <strong>Fluids & blood</strong> for maintenance rates, bolus volumes, and transfusion calculations.', 'info');
+    note('See ' + pl('eq-fluids', 'Fluids & blood') + ' for maintenance rates, bolus volumes, and transfusion calculations.', 'info');
   }
   registerStep('eq-ivsetup', 'IV setup', renderIVSetup, ['Home', 'Equipment']);
 
@@ -3078,6 +3144,42 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     note('Caps reflect adult maxima where applicable. In a 60-kg adolescent, weight-based dosing often equals or exceeds these caps — drug rows flag this with "capped".', 'info');
   }
   registerStep('ref-caps', 'Dose caps', renderCaps, ['Home', 'Reference']);
+
+  function renderRedosing() {
+    titleWithFav('Surgical prophylaxis redosing', 'Default = Metropolitan (your hospital). ⚑ = Met differs from other sites.', 'ref-redose');
+    note('Give the <strong>full dose 1–59 min before incision</strong>. Exceptions: <strong>vancomycin, fluoroquinolones, and gentamicin</strong> start <strong>60–120 min</strong> before. Re-dose for long cases per the table, and re-dose <strong>any agent after ~30 mL/kg blood loss</strong> (or &gt;1500 mL if &gt;50 kg).', 'info');
+    note('Standard interval (column <strong>&gt;60</strong>) follows the <strong>Metropolitan</strong> surgical prophylaxis sheet. Renal-adjusted columns and the cardiac/CPB row come from a pediatric stewardship table — Met is adult-only and doesn\'t tier by renal function. Intervals run from the <strong>pre-op dose</strong>, not case start.', 'info');
+    const tbl = el('table', 'ref');
+    const thead = el('thead'); const hr = el('tr');
+    ['Drug', '>60', '30–60', '10–29', '<10 / HD'].forEach(h => { const th = el('th'); th.textContent = h; hr.appendChild(th); });
+    thead.appendChild(hr); tbl.appendChild(thead);
+    const tbody = el('tbody');
+    [
+      ['Cefazolin', 'q4h', 'q6h', 'q8h', 'q12h'],
+      ['Cefazolin (cardiac/CPB)', 'q2h', 'q4h', 'q6h', 'q8h'],
+      ['Ampicillin', 'q2h', 'q4h', 'q6h', 'q8h'],
+      ['Amp/sulbactam', 'q2h', 'q4h', 'q6h', 'q12h'],
+      ['Cefoxitin', 'q2h', 'q4h', 'q8h', 'q12h'],
+      ['Cefotetan', 'q6h', 'q6h', 'q12h', '—'],
+      ['Clindamycin', 'q6h', 'q6h', 'q6h', 'q6h'],
+      ['Vancomycin ⚑', 'none', 'none', 'none', 'none'],
+      ['Gentamicin', '—', '—', '—', '—'],
+      ['Metronidazole', '—', '—', '—', '—'],
+    ].forEach(r => {
+      const tr = el('tr');
+      r.forEach(c => { const td = el('td'); td.textContent = c; tr.appendChild(td); });
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody); stage.appendChild(tbl);
+    note('Columns are CrCl in mL/min/1.73m². "—" = no intra-op re-dose. Gentamicin not re-dosed; metronidazole covers the case on its long half-life.', 'info');
+    note('<strong>⚑ Vancomycin:</strong> Metropolitan states re-dosing is <strong>not required</strong> (long half-life). Other peds/adult sites re-dose <strong>q6h</strong> (&gt;60), q8h (30–60), q12–24h (10–29) on long cases. Met\'s "no re-dose" is the more minimalist stance, not necessarily outdated — but if your practice differs from Met, confirm which your pharmacy currently endorses.', 'warn');
+    note('<strong>Cefazolin q4h</strong> matches both Met and adult ASHP/IDSA/SIS 2013; some peds stewardship tables use q3h. <strong>Local policy first.</strong>', 'warn');
+
+    sectionHead('Dose-adjustment factors');
+    note('<strong>Renal impairment → longer interval, not a smaller dose.</strong> The pre-op (loading) dose stays full — you need tissue concentration at incision regardless of clearance. Only re-dose frequency drops (table above). Per-dose reduction is a treatment-dosing concept, not prophylaxis.', 'info');
+    note('<strong>Obesity:</strong> aminoglycosides (gentamicin, tobramycin) and acyclovir → adjusted body weight [ABW = IBW + 0.4 × (actual − IBW)] when actual is &gt;20% over IBW. Cefazolin and vancomycin use total body weight but with the dose caps already applied. <strong>Hepatic dysfunction:</strong> clindamycin, metronidazole, nafcillin/oxacillin. <strong>Age extremes:</strong> neonates / premature infants clear renally slower — use dedicated neonatal guidelines. <strong>Augmented clearance</strong> (burns, cystic fibrosis, some critically ill) runs the other way — may need shorter intervals or higher doses.', 'info');
+  }
+  registerStep('ref-redose', 'Surgical prophylaxis redosing', renderRedosing, ['Home', 'Reference']);
 
   // ============ INIT ============
   loadPatient();
