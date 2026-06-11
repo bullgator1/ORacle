@@ -2026,6 +2026,7 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     tbl.appendChild(tbody);
     stage.appendChild(tbl);
     note('<strong>Max single-shot dose ceilings:</strong> ropivacaine 3 mg/kg, bupivacaine 2.5 mg/kg plain. At 1.25 mL/kg with 0.25% bupi the dose is 3.125 mg/kg — exceeds plain max. Use ropi or reduce volume.', 'warn');
+        note('<strong>&#9873; Bupivacaine ceiling note:</strong> Some sources (including this app\'s preop counterpart) cite 2 mg/kg as the conservative ceiling given bupivacaine\'s disproportionate cardiotoxicity. 2.5 mg/kg is widely used; 2 mg/kg is defensible for high-risk patients.');')
   }
   registerStep('cat-la', 'Local anesthetics', renderLA, ['Home']);
 

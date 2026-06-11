@@ -2693,6 +2693,21 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
       cite:'Klein JA 1990; Ostad 1996 (55 mg/kg safe); Klein PK re-analysis (45 mg/kg prudent).'});
     note('Liposuction-specific. The standard calculator does NOT use these numbers — it uses the 7 mg/kg infiltration ceiling. Keep the two modes mentally separate.');
   }
+
+  function renderLAToxicity() {
+      title('LAST — Local Anesthetic Systemic Toxicity', 'Stop injection. Call for help. Get the lipid kit.');
+          rec({tone:'danger', label:'Intralipid 20% — bolus',
+                  main:'1.5 mL/kg IV over 1 min (lean body weight, cap 100 mL)',
+                          detail:'Follow with 0.25 mL/kg/min infusion. Double rate if refractory. Lipid cap ~12 mL/kg.',
+                                  cite:'ASRA 2020 LAST checklist.'});
+                                      rec({tone:'warn', label:'Airway + seizures',
+                                              main:'100% O₂ · ventilate to normocapnia · benzodiazepines for seizures',
+                                                      detail:'Avoid propofol as lipid substitute — it is not therapeutic lipid emulsion.'});
+                                                          rec({tone:'warn', label:'Modified ACLS if arrest',
+                                                                  main:'Epinephrine ≤1 mcg/kg only. No vasopressin, Ca-blockers, β-blockers, or other LAs.',
+                                                                          detail:'Amiodarone preferred. Prolonged CPR. Consider cardiopulmonary bypass if available. (ASRA 2020)'});
+                                                                              note('<strong>&#9873; Peds cross-reference:</strong> Full ASRA 2020 protocol with pediatric weight-based details is in the Peds ORacle → Local Anesthetics → LAST protocol.');
+                                                                              }
   // ============ ANTICOAGULATION ============
   function renderACUrgency() {
     title('Anticoagulation', 'How urgent is the surgery?');
@@ -4614,7 +4629,7 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     title('Cefazolin — default agent');
     rec({tone:'success', label:'Standard adult dosing',
       main:'2 g IV (3 g if &gt;120 kg) within 60 min of incision',
-      detail:'<ul><li>Pediatric: 30 mg/kg up to adult dose</li><li>Redose: every 4 h for prolonged surgery, or after &gt;1.5 L blood loss</li><li>Half-life 1.5-2 h; therapeutic for ~4 h</li></ul>',
+      detail:'<ul><li>Pediatric: 25 mg/kg up to adult dose</li><li>Redose: every 4 h for prolonged surgery, or after &gt;1.5 L blood loss</li><li>Half-life 1.5-2 h; therapeutic for ~4 h</li></ul>',
       cite:'ASHP/IDSA/SIS/SHEA 2013 guidelines.'});
     rec({tone:'info', label:'Timing',
       main:'Within 60 min of incision (within 120 min for vanco/fluoroquinolones)',
@@ -4633,6 +4648,7 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
     rec({tone:'warn', label:'Severe allergy history',
       main:'Anaphylaxis / SJS/TEN / DRESS → use clindamycin or vancomycin',
       detail:'<ul><li>Clindamycin 900 mg IV (15 mg/kg, max 900 mg) — adequate for most clean procedures</li><li>Vancomycin 15-20 mg/kg IV (over 60-90 min to avoid red man) — preferred if MRSA coverage also needed</li><li>For GI procedures: clindamycin + gentamicin or vancomycin + metronidazole</li></ul>'});
+          note('<strong>&#9873; Clindamycin resistance note:</strong> MD Anderson 2025 peds algorithm removed clindamycin as the beta-lactam-allergy alternative due to rising <em>Staph</em> resistance — they use vancomycin (± cipro or metro). Adult institutional practice varies; ASHP/IDSA/SIS 2013 still includes clindamycin as an option.');
   }
 
   function renderAbxMRSA() {
@@ -5085,6 +5101,7 @@ window.addEventListener('error',function(e){if(window.__oracleBooted)return;var 
   registerStep('la-mix', 'Mixing local anesthetics', renderLAMixing, ['Anticoagulation / regional', 'Local anesthetic — max dose']);
   registerStep('la-redose', 'LA redosing during a case', renderLARedose, ['Anticoagulation / regional', 'Local anesthetic — max dose']);
   registerStep('la-tumescent', 'Tumescent / liposuction lidocaine', renderLATumescent, ['Anticoagulation / regional', 'Local anesthetic — max dose']);
+      registerStep('la-toxicity', 'LAST / lipid rescue', renderLAToxicity, ['Anticoagulation / regional', 'Local anesthetic — max dose']);
 
 
   registerStep('dm-root', 'Diabetes & GLP-1', renderBGRoot, ['Diabetes & GLP-1']);
